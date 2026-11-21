@@ -1,12 +1,13 @@
 /**
- * SchemaCrud component tests, following the plan in
- * docs/superpowers/specs/2026-11-21-schema-crud-design.md.
+ * SchemaCrud v2 component tests, following
+ * docs/superpowers/specs/2026-11-21-schema-crud-v2-design.md.
  */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import type { FormSchema } from '@jswork/antd-form-schema';
 import SchemaCrud, { SchemaCrud as NamedSchemaCrud } from '../src';
 import { checkRequirement, errorMessage, resolveApi } from '../src';
+import type { CrudSuccessEvent } from '../src';
 
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
@@ -39,113 +40,185 @@ afterEach(() => {
 describe('exports', () => {
   it('exposes a named and a default export with a version', () => {
     expect(NamedSchemaCrud).toBe(SchemaCrud);
-    expect(SchemaCrud.version).toBe('1.0.0');
+    expect(SchemaCrud.version).toBe('2.0.0');
   });
 });
 
-describe('create mode', () => {
-  it('does not call show and submits create', async () => {
+describe('automatic mode', () => {
+  it('renders create without id and never calls show', () => {
     const api = makeApi();
-    const onCreated = vi.fn();
-    render(<SchemaCrud mode="create" schema={schema} api={api} onCreated={onCreated} />);
+    render(<SchemaCrud schema={schema} api={api} title="文章" />);
 
+    expect(screen.getByText('新建文章')).toBeInTheDocument();
     expect(api.show).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: /编\s*辑/ })).not.toBeInTheDocument();
+  });
+
+  it('renders view with id and loads the record', async () => {
+    const api = makeApi();
+    render(<SchemaCrud schema={schema} api={api} id={7} title="文章" />);
+
+    expect(screen.getByText('文章详情')).toBeInTheDocument();
+    await waitFor(() => expect(api.show).toHaveBeenCalledWith({ id: 7 }));
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
+    expect(document.querySelector('.ant-descriptions')).toBeInTheDocument();
+  });
+
+  it('switches view -> edit -> view internally', async () => {
+    const api = makeApi();
+    render(<SchemaCrud schema={schema} api={api} id={7} title="文章" />);
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+
+    const input = await screen.findByLabelText('姓名');
+    expect(input).toHaveValue('Ada');
+    expect(screen.getByText('编辑文章')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /取\s*消/ }));
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
+    expect(screen.getByText('文章详情')).toBeInTheDocument();
+  });
+
+  it('re-derives mode when id changes', async () => {
+    const api = makeApi();
+    const { rerender } = render(<SchemaCrud schema={schema} api={api} id={7} title="文章" />);
+
+    await screen.findByText('Ada');
+    rerender(<SchemaCrud schema={schema} api={api} title="文章" />);
+    expect(screen.getByText('新建文章')).toBeInTheDocument();
+
+    rerender(<SchemaCrud schema={schema} api={api} id={8} title="文章" />);
+    expect(screen.getByText('文章详情')).toBeInTheDocument();
+    await screen.findByText('Ada');
+  });
+});
+
+describe('controlled mode', () => {
+  it('does not switch internally and reports onModeChange', async () => {
+    const api = makeApi();
+    const onModeChange = vi.fn();
+    render(
+      <SchemaCrud
+        schema={schema}
+        api={api}
+        id={7}
+        mode="view"
+        title="文章"
+        onModeChange={onModeChange}
+      />
+    );
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+    expect(onModeChange).toHaveBeenCalledWith('edit');
+    expect(screen.getByText('文章详情')).toBeInTheDocument();
+    expect(screen.queryByLabelText('姓名')).not.toBeInTheDocument();
+  });
+});
+
+describe('create', () => {
+  it('submits schema initial values and emits onSuccess', async () => {
+    const api = makeApi();
+    const onSuccess = vi.fn<(event: CrudSuccessEvent) => void>();
+    render(<SchemaCrud schema={schema} api={api} onSuccess={onSuccess} />);
+
     fireEvent.change(screen.getByLabelText('姓名'), { target: { value: 'Ada' } });
     fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }));
 
     await waitFor(() => expect(api.create).toHaveBeenCalledTimes(1));
     expect(api.create).toHaveBeenCalledWith({ name: 'Ada', status: 'active' });
-    expect(onCreated).toHaveBeenCalledWith({ id: 42 }, { name: 'Ada', status: 'active' });
+    expect(onSuccess).toHaveBeenCalledWith({
+      action: 'create',
+      result: { id: 42 },
+      values: { name: 'Ada', status: 'active' },
+    });
   });
 
-  it('merges createInitialValues over schema.initialValues', async () => {
+  it('applies schema.normalizeValues before create', async () => {
     const api = makeApi();
-    render(
-      <SchemaCrud
-        mode="create"
-        schema={schema}
-        api={api}
-        createInitialValues={{ status: 'disabled' }}
-      />
-    );
-    fireEvent.change(screen.getByLabelText('姓名'), { target: { value: 'Bob' } });
-    fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }));
-    await waitFor(() => expect(api.create).toHaveBeenCalledTimes(1));
-    expect(api.create).toHaveBeenCalledWith({ name: 'Bob', status: 'disabled' });
-  });
+    const normalizedSchema: FormSchema = {
+      ...schema,
+      normalizeValues: (values) => ({
+        ...values,
+        name: String(values.name ?? '').trim(),
+        source: 'crm',
+      }),
+    };
+    render(<SchemaCrud schema={normalizedSchema} api={api} />);
 
-  it('runs beforeSubmit before create and supports async transforms', async () => {
-    const api = makeApi();
-    render(
-      <SchemaCrud
-        mode="create"
-        schema={schema}
-        api={api}
-        beforeSubmit={async (values) => ({ ...values, source: 'crm' })}
-      />
-    );
-    fireEvent.change(screen.getByLabelText('姓名'), { target: { value: 'Ada' } });
+    fireEvent.change(screen.getByLabelText('姓名'), { target: { value: '  Ada  ' } });
     fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }));
+
     await waitFor(() => expect(api.create).toHaveBeenCalledTimes(1));
     expect(api.create).toHaveBeenCalledWith({ name: 'Ada', status: 'active', source: 'crm' });
   });
 });
 
-describe('edit mode', () => {
-  it('calls show({ id }), back-fills the form and submits update with id', async () => {
+describe('edit', () => {
+  it('loads the record, submits update with id and returns to view', async () => {
     const api = makeApi();
-    render(<SchemaCrud mode="edit" schema={schema} api={api} id={7} />);
+    api.show
+      .mockResolvedValueOnce({ id: 7, name: 'Ada', status: 'active' })
+      .mockResolvedValueOnce({ id: 7, name: 'Grace', status: 'active' });
+    const onSuccess = vi.fn<(event: CrudSuccessEvent) => void>();
+    render(<SchemaCrud schema={schema} api={api} id={7} onSuccess={onSuccess} />);
 
-    expect(screen.queryByLabelText('姓名')).not.toBeInTheDocument();
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+
     const input = await screen.findByLabelText('姓名');
-    expect(api.show).toHaveBeenCalledWith({ id: 7 });
-    expect(input).toHaveValue('Ada');
-
     fireEvent.change(input, { target: { value: 'Grace' } });
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
     await waitFor(() => expect(api.update).toHaveBeenCalledTimes(1));
     expect(api.update).toHaveBeenCalledWith({ id: 7, name: 'Grace', status: 'active' });
+    expect(onSuccess).toHaveBeenCalledWith({
+      action: 'update',
+      result: { id: 42 },
+      values: { name: 'Grace', status: 'active' },
+    });
+
+    await waitFor(() => expect(api.show).toHaveBeenCalledTimes(2));
+    expect(screen.getByText('记录详情')).toBeInTheDocument();
   });
 
-  it('applies mapRecord to the show payload', async () => {
+  it('keeps save disabled until the form changes', async () => {
     const api = makeApi();
-    render(
-      <SchemaCrud
-        mode="edit"
-        schema={schema}
-        api={api}
-        id={7}
-        mapRecord={(record) => ({ ...record, name: record.name.toUpperCase() })}
-      />
-    );
+    render(<SchemaCrud schema={schema} api={api} id={7} />);
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     const input = await screen.findByLabelText('姓名');
-    expect(input).toHaveValue('ADA');
+    const save = screen.getByRole('button', { name: /保\s*存/ });
+
+    expect(save).toBeDisabled();
+    fireEvent.change(input, { target: { value: 'Grace' } });
+    await waitFor(() => expect(save).not.toBeDisabled());
+
+    fireEvent.change(input, { target: { value: 'Ada' } });
+    await waitFor(() => expect(save).toBeDisabled());
+  });
+
+  it('shows the dirty dot only after a change', async () => {
+    const api = makeApi();
+    render(<SchemaCrud schema={schema} api={api} id={7} />);
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+    const input = await screen.findByLabelText('姓名');
+
+    expect(document.querySelector('.antd-form-schema-crud__dirty')).not.toBeInTheDocument();
+    fireEvent.change(input, { target: { value: 'Grace' } });
+    expect(document.querySelector('.antd-form-schema-crud__dirty')).toBeInTheDocument();
   });
 });
 
-describe('view mode', () => {
-  it('renders Descriptions without a submit button and supports edit callback', async () => {
-    const api = makeApi();
-    const onEdit = vi.fn();
-    render(<SchemaCrud mode="view" schema={schema} api={api} id={7} onEdit={onEdit} />);
-
-    expect(screen.queryByRole('button', { name: /创\s*建/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /保\s*存/ })).not.toBeInTheDocument();
-
-    expect(await screen.findByText('Ada')).toBeInTheDocument();
-    expect(api.show).toHaveBeenCalledWith({ id: 7 });
-
-    const descriptions = document.querySelector('.ant-descriptions');
-    expect(descriptions).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
-    expect(onEdit).toHaveBeenCalledWith({ id: 7, name: 'Ada', status: 'active' });
-  });
-
+describe('view', () => {
   it('does not mutate the passed schema, especially viewMode', async () => {
     const api = makeApi();
     const original = JSON.stringify(schema);
-    render(<SchemaCrud mode="view" schema={schema} api={api} id={7} />);
+    render(<SchemaCrud schema={schema} api={api} id={7} />);
     await screen.findByText('Ada');
     expect(schema.viewMode).toBeUndefined();
     expect(JSON.stringify(schema)).toBe(original);
@@ -184,7 +257,7 @@ describe('resource resolution', () => {
   it('works end to end through the component with resource', async () => {
     const users_create = vi.fn(async () => ({ id: 1 }));
     (globalThis as any).nx = { $api: { users_create } };
-    render(<SchemaCrud mode="create" schema={schema} resource="users" />);
+    render(<SchemaCrud schema={schema} resource="users" />);
     fireEvent.change(screen.getByLabelText('姓名'), { target: { value: 'Ada' } });
     fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }));
     await waitFor(() => expect(users_create).toHaveBeenCalledTimes(1));
@@ -205,7 +278,7 @@ describe('requirement checks', () => {
   });
 
   it('renders an error when neither resource nor api is provided', () => {
-    render(<SchemaCrud mode="create" schema={schema} />);
+    render(<SchemaCrud schema={schema} />);
     expect(screen.getByText(/缺少 resource 或 api/)).toBeInTheDocument();
   });
 
@@ -219,10 +292,16 @@ describe('requirement checks', () => {
 });
 
 describe('delete', () => {
-  it('asks for confirmation by default and destroys on confirm', async () => {
+  it('asks for confirmation by default and emits delete success', async () => {
     const api = makeApi();
-    const onDeleted = vi.fn();
-    render(<SchemaCrud mode="edit" schema={schema} api={api} id={7} onDeleted={onDeleted} />);
+    api.show
+      .mockResolvedValueOnce({ id: 7, name: 'Ada', status: 'active' })
+      .mockResolvedValueOnce({ id: 7, name: 'Grace', status: 'active' });
+    const onSuccess = vi.fn<(event: CrudSuccessEvent) => void>();
+    render(<SchemaCrud schema={schema} api={api} id={7} onSuccess={onSuccess} />);
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     await screen.findByLabelText('姓名');
 
     fireEvent.click(screen.getByRole('button', { name: /删\s*除/ }));
@@ -231,29 +310,32 @@ describe('delete', () => {
     fireEvent.click(await screen.findByRole('button', { name: /确\s*定/ }));
     await waitFor(() => expect(api.destroy).toHaveBeenCalledTimes(1));
     expect(api.destroy).toHaveBeenCalledWith({ id: 7 });
-    await waitFor(() => expect(onDeleted).toHaveBeenCalledWith({ ok: true }));
+    expect(onSuccess).toHaveBeenCalledWith({ action: 'delete', result: { ok: true } });
   });
 
-  it('deletes immediately when deleteConfirm is false', async () => {
+  it('deletes immediately when confirmDelete is false', async () => {
     const api = makeApi();
-    render(
-      <SchemaCrud mode="edit" schema={schema} api={api} id={7} deleteConfirm={false} />
-    );
+    render(<SchemaCrud schema={schema} api={api} id={7} confirmDelete={false} />);
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     await screen.findByLabelText('姓名');
     fireEvent.click(screen.getByRole('button', { name: /删\s*除/ }));
     await waitFor(() => expect(api.destroy).toHaveBeenCalledTimes(1));
   });
 
-  it('hides the delete button when canDelete is false', async () => {
+  it('hides delete via actions and when destroy is missing', async () => {
     const api = makeApi();
-    render(<SchemaCrud mode="edit" schema={schema} api={api} id={7} canDelete={false} />);
+    render(<SchemaCrud schema={schema} api={api} id={7} actions={{ delete: false }} />);
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     await screen.findByLabelText('姓名');
     expect(screen.queryByRole('button', { name: /删\s*除/ })).not.toBeInTheDocument();
-  });
 
-  it('hides the delete button when destroy is missing', async () => {
-    const { destroy: _omit, ...api } = makeApi();
-    render(<SchemaCrud mode="edit" schema={schema} api={api} id={7} />);
+    const { destroy: _omit, ...withoutDestroy } = makeApi();
+    render(<SchemaCrud schema={schema} api={withoutDestroy} id={8} />);
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     await screen.findByLabelText('姓名');
     expect(screen.queryByRole('button', { name: /删\s*除/ })).not.toBeInTheDocument();
   });
@@ -263,15 +345,13 @@ describe('loading and failure', () => {
   it('shows a retry alert when show fails and recovers on retry', async () => {
     const api = makeApi();
     api.show.mockRejectedValueOnce(new Error('boom'));
-    render(<SchemaCrud mode="edit" schema={schema} api={api} id={7} />);
+    render(<SchemaCrud schema={schema} api={api} id={7} />);
 
     expect(await screen.findByText('boom')).toBeInTheDocument();
-    expect(screen.queryByLabelText('姓名')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /保\s*存/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('Ada')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /重\s*试/ }));
-    const input = await screen.findByLabelText('姓名');
-    expect(input).toHaveValue('Ada');
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
     expect(api.show).toHaveBeenCalledTimes(2);
   });
 
@@ -279,8 +359,10 @@ describe('loading and failure', () => {
     const api = makeApi();
     api.update.mockRejectedValueOnce(new Error('save failed'));
     const onError = vi.fn();
-    render(<SchemaCrud mode="edit" schema={schema} api={api} id={7} onError={onError} />);
+    render(<SchemaCrud schema={schema} api={api} id={7} onError={onError} />);
 
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     const input = await screen.findByLabelText('姓名');
     fireEvent.change(input, { target: { value: 'Grace' } });
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
@@ -288,10 +370,7 @@ describe('loading and failure', () => {
     expect(await screen.findByText('save failed')).toBeInTheDocument();
     expect(onError).toHaveBeenCalledWith(expect.any(Error), 'update');
     expect(input).toHaveValue('Grace');
-
-    const submit = screen.getByRole('button', { name: /保\s*存/ });
-    expect(submit).not.toBeDisabled();
-    expect(submit).not.toHaveClass('ant-btn-loading');
+    expect(screen.getByRole('button', { name: /保\s*存/ })).not.toBeDisabled();
   });
 
   it('discards a stale response when id changes quickly', async () => {
@@ -306,69 +385,59 @@ describe('loading and failure', () => {
       return Promise.resolve({ id, name: 'Fast', status: 'active' });
     });
 
-    const { rerender } = render(<SchemaCrud mode="edit" schema={schema} api={api} id={1} />);
-    rerender(<SchemaCrud mode="edit" schema={schema} api={api} id={2} />);
-    const input = await screen.findByLabelText('姓名');
-    expect(input).toHaveValue('Fast');
+    const { rerender } = render(<SchemaCrud schema={schema} api={api} id={1} />);
+    rerender(<SchemaCrud schema={schema} api={api} id={2} />);
+    expect(await screen.findByText('Fast')).toBeInTheDocument();
 
     resolveSlow({ id: 1, name: 'Slow', status: 'active' });
     await flush();
-    expect(input).toHaveValue('Fast');
+    expect(screen.queryByText('Slow')).not.toBeInTheDocument();
+    expect(screen.getByText('Fast')).toBeInTheDocument();
   });
 });
 
-describe('footer and actions', () => {
-  it('renders no action bar when footer is false', () => {
-    const api = makeApi();
-    render(<SchemaCrud mode="create" schema={schema} api={api} footer={false} />);
-    expect(document.querySelector('.antd-form-schema-crud__footer')).not.toBeInTheDocument();
-  });
-
-  it('lets a custom footer take over the default actions', () => {
+describe('actions', () => {
+  it('supports custom text and hiding buttons', () => {
     const api = makeApi();
     render(
       <SchemaCrud
-        mode="create"
         schema={schema}
         api={api}
-        footer={<button type="button">自定义提交</button>}
-      />
-    );
-    expect(screen.getByRole('button', { name: '自定义提交' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /创\s*建/ })).not.toBeInTheDocument();
-  });
-
-  it('supports custom action text and hiding buttons', async () => {
-    const api = makeApi();
-    render(
-      <SchemaCrud
-        mode="create"
-        schema={schema}
-        api={api}
-        actions={{ submit: { text: '马上创建' }, delete: false }}
+        actions={{ save: { text: '马上创建' }, cancel: false }}
       />
     );
     expect(screen.getByRole('button', { name: /马上创建/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /取\s*消/ })).not.toBeInTheDocument();
   });
 
-  it('shows cancel and calls onCancel', () => {
+  it('calls onBack from create cancel and view back', async () => {
     const api = makeApi();
-    const onCancel = vi.fn();
-    render(<SchemaCrud mode="create" schema={schema} api={api} onCancel={onCancel} />);
+    const onBack = vi.fn();
+    const { rerender } = render(<SchemaCrud schema={schema} api={api} onBack={onBack} />);
+
     fireEvent.click(screen.getByRole('button', { name: /取\s*消/ }));
-    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onBack).toHaveBeenCalledTimes(1);
+
+    rerender(<SchemaCrud schema={schema} api={api} id={7} onBack={onBack} />);
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getAllByRole('button', { name: /返\s*回/ })[0]);
+    expect(onBack).toHaveBeenCalledTimes(2);
   });
 
-  it('renders the header when title or extra is present', () => {
+  it('renders custom extra and the built-in back button', async () => {
     const api = makeApi();
     render(
-      <SchemaCrud mode="create" schema={schema} api={api} title="新建用户" extra={<a>帮助</a>} />
+      <SchemaCrud
+        schema={schema}
+        api={api}
+        id={7}
+        extra={<a href="#help">帮助</a>}
+        onBack={() => undefined}
+      />
     );
-    expect(screen.getByText('新建用户')).toBeInTheDocument();
     expect(screen.getByText('帮助')).toBeInTheDocument();
-    expect(
-      document.querySelector('.antd-form-schema-crud__header')
-    ).toBeInTheDocument();
+    await screen.findByText('Ada');
+    expect(screen.getAllByRole('button', { name: /返\s*回/ }).length).toBeGreaterThan(0);
   });
 });
 

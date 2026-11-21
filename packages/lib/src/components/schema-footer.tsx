@@ -1,26 +1,25 @@
 import type { ReactNode } from 'react';
 import { Button, Popconfirm } from 'antd';
 import type { ButtonProps } from 'antd';
+import { ArrowLeftOutlined, DeleteOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { CLASS_NAME } from '../constants';
-import type { CrudActions, CrudMode, SchemaCrudProps } from '../types';
+import type { CrudActions, CrudMode } from '../types';
 
-type ActionName = 'submit' | 'cancel' | 'edit' | 'delete';
+type ActionName = 'save' | 'cancel' | 'edit' | 'delete';
 
 interface SchemaFooterProps {
   mode: CrudMode;
   actions?: CrudActions;
-  canEdit: boolean;
-  canDelete: boolean;
-  deleteConfirm: SchemaCrudProps['deleteConfirm'];
   hasDestroy: boolean;
   submitLoading: boolean;
   deleteLoading: boolean;
   formReady: boolean;
-  showForm: boolean;
-  loading: boolean;
-  loadError: unknown;
-  onCancel?: () => void;
-  onEdit?: () => void;
+  dirty: boolean;
+  available: boolean;
+  canCancel: boolean;
+  confirmDelete: boolean;
+  onCancel: () => void;
+  onEdit: () => void;
   onDelete: () => void;
   onSubmit: () => void;
 }
@@ -28,16 +27,14 @@ interface SchemaFooterProps {
 export function SchemaFooter({
   mode,
   actions,
-  canEdit,
-  canDelete,
-  deleteConfirm,
   hasDestroy,
   submitLoading,
   deleteLoading,
   formReady,
-  showForm,
-  loading,
-  loadError,
+  dirty,
+  available,
+  canCancel,
+  confirmDelete,
   onCancel,
   onEdit,
   onDelete,
@@ -65,84 +62,85 @@ export function SchemaFooter({
     );
   };
 
-  const buildDeleteButton = (busy: boolean): ReactNode => {
-    if (!canDelete || !hasDestroy) return null;
-    // Popconfirm opens on the child's click, so the inner button must stay
-    // inert when confirmation is on; only the confirm callback may delete.
-    const button = renderAction('delete', {
-      text: '删除',
-      onClick: deleteConfirm === false ? () => void onDelete() : () => undefined,
-      props: { danger: true, loading: deleteLoading, disabled: busy },
-    });
-    if (!button) return null;
-    if (deleteConfirm === false) return button;
-
-    return (
-      <Popconfirm
-        key="delete-confirm"
-        {...(deleteConfirm ?? {})}
-        title={deleteConfirm?.title ?? '确定删除这条记录？'}
-        okText={deleteConfirm?.okText ?? '确定'}
-        cancelText={deleteConfirm?.cancelText ?? '取消'}
-        onConfirm={(event) => {
-          deleteConfirm?.onConfirm?.(event);
-          void onDelete();
-        }}
-      >
-        {button}
-      </Popconfirm>
-    );
-  };
-
-  const interactable = showForm && !loading && !loadError;
   const busy = submitLoading || deleteLoading;
-
-  const cancel = onCancel
+  const cancel = canCancel
     ? renderAction('cancel', {
         text: mode === 'view' ? '返回' : '取消',
         onClick: onCancel,
+        props: {
+          icon: mode === 'view' ? <ArrowLeftOutlined /> : undefined,
+        },
       })
     : null;
 
-  // While loading, failing to load or being misconfigured, only the cancel
-  // button stays on screen.
-  if (!interactable) {
+  // Loading, load failure, or a blocked configuration keeps only the leave action.
+  if (!available) {
     return cancel ? <div className={`${CLASS_NAME}__footer-right`}>{cancel}</div> : null;
   }
 
-  const submit = renderAction('submit', {
+  const save = renderAction('save', {
     text: mode === 'create' ? '创建' : '保存',
     onClick: onSubmit,
     props: {
       type: 'primary',
       htmlType: 'button',
+      icon: <SaveOutlined />,
       loading: submitLoading,
-      disabled: busy || !formReady,
+      disabled: busy || !formReady || (mode === 'edit' && !dirty),
     },
   });
 
-  const del = buildDeleteButton(busy);
+  let remove: ReactNode = null;
+  if (hasDestroy && (mode === 'edit' || mode === 'view')) {
+    const button = renderAction('delete', {
+      text: '删除',
+      onClick: confirmDelete ? () => undefined : () => void onDelete(),
+      props: {
+        danger: true,
+        icon: <DeleteOutlined />,
+        loading: deleteLoading,
+        disabled: busy,
+      },
+    });
+    if (button) {
+      remove = confirmDelete ? (
+        <Popconfirm
+          key="delete-confirm"
+          title="确定删除这条记录？"
+          okText="确定"
+          cancelText="取消"
+          onConfirm={() => void onDelete()}
+        >
+          {button}
+        </Popconfirm>
+      ) : (
+        button
+      );
+    }
+  }
+
+  const edit =
+    mode === 'view'
+      ? renderAction('edit', {
+          text: '编辑',
+          onClick: onEdit,
+          props: { icon: <EditOutlined /> },
+        })
+      : null;
 
   const left: ReactNode[] = [];
   const right: ReactNode[] = [];
 
   if (mode === 'create') {
     if (cancel) left.push(cancel);
-    if (submit) right.push(submit);
+    if (save) right.push(save);
   } else if (mode === 'edit') {
-    if (del) left.push(del);
+    if (remove) left.push(remove);
     if (cancel) right.push(cancel);
-    if (submit) right.push(submit);
+    if (save) right.push(save);
   } else {
-    if (del) left.push(del);
+    if (remove) left.push(remove);
     if (cancel) right.push(cancel);
-    const edit =
-      canEdit && onEdit
-        ? renderAction('edit', {
-            text: '编辑',
-            onClick: onEdit,
-          })
-        : null;
     if (edit) right.push(edit);
   }
 

@@ -1,36 +1,9 @@
 .antd-form-schema-crud {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-  }
-
-  &__title {
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 1.5;
-  }
-
-  &__extra {
-    flex-shrink: 0;
-  }
-
   &__body {
     display: flex;
     flex-direction: column;
     gap: 16px;
-  }
-
-  &__loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 160px;
+    min-height: 120px;
   }
 
   &__alert {
@@ -42,6 +15,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    margin-top: 16px;
   }
 
   &__footer-left,
@@ -57,5 +31,14 @@
 
   &__footer-right {
     margin-left: auto;
+  }
+
+  &__dirty {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fa8c16;
+    vertical-align: middle;
   }
 }

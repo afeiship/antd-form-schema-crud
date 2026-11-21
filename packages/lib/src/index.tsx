@@ -12,5 +12,6 @@ export type {
   CrudActionConfig,
   CrudActions,
   CrudFormProps,
+  CrudSuccessEvent,
   SchemaCrudProps,
 } from './types';
