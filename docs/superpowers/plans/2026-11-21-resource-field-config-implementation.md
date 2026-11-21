@@ -4,7 +4,7 @@
 
 依据：`docs/superpowers/specs/2026-11-21-resource-field-config-design.md`
 
-状态：待执行
+状态：已执行（2026-11-21）
 
 ## 实施原则
 

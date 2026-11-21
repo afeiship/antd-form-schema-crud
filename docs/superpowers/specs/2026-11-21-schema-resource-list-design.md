@@ -172,7 +172,6 @@ export interface CrudApi<TRecord = CrudRecord> {
 export interface ListActions {
   create?: false | CrudActionConfig;
   refresh?: false | CrudActionConfig;
-  view?: false | CrudActionConfig;
   edit?: false | CrudActionConfig;
   delete?: false | CrudActionConfig;
 }
@@ -204,6 +203,8 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
   presets?: ListPresets;
   /** 显式列定义；不传时从 schema 字段推导。 */
   columns?: TableProps<TRecord>['columns'];
+  /** 只筛选 schema 推导列，按数组顺序展示；不传为全部，显式 columns 优先。 */
+  fields?: readonly string[];
   rowKey?: keyof TRecord | ((record: TRecord) => Key);
 
   /** 业务筛选条件，和 page / size 一起发送。 */
@@ -261,15 +262,16 @@ const postListPresets = {
 
 合并规则：
 
-1. 显式 `columns` 优先。
-2. `presets` 次之。
-3. `schema.fields` 的 `label` 再次。
-4. 最后回退到字段 `key`。
+1. 显式 `columns` 优先，此时忽略 `fields`。
+2. `fields` 决定推导列包含哪些字段及顺序。
+3. `presets` 补充标题、宽度、对齐等展示属性。
+4. `schema.fields` 提供字段本身；`label` 再次，最后回退到字段 `key`。
 
 具体行为：
 
 - 传 `columns` 时，只对 `dataIndex` 是字符串的列做属性级合并；列自己写了 `title / width / align / ellipsis / fixed` 就保留，缺的才用 presets 补。
-- 不传 `columns` 时，从 `schema.fields` 生成列，标题优先取 presets，其次取字段 `label`。
+- 不传 `columns` 时，从 `schema.fields` 生成列；传了 `fields` 则先按 `fields` 的 key 和顺序筛选，再套 presets。
+- `fields` 中不存在的 key、schema 自身 `hidden` 的字段直接跳过；`fields=[]` 时不生成数据列。
 - presets 不创建列：schema 里没有的字段，不会因为 presets 多出一列。
 - 操作列不受 presets 影响。
 - presets 只做展示元数据；自定义单元格、排序、筛选仍用显式 `columns`。

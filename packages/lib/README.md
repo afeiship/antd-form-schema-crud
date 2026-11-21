@@ -59,9 +59,54 @@ posts_index({ page, size, ...params }) // => { rows, total }
 - 请求和响应字段名可在项目入口全局配置一次，默认仍是 `page / size / rows / total`。
 - 服务端分页；`presets` 只配置列展示，不改变表单字段。
 - 列表不依赖 React Router，跳转由 `onCreate / onEdit` 交给业务。
+- `fields` 只筛选 schema 推导列；显式 `columns` 优先，`fields` 不传时展示全部字段。
 - 行内只有编辑和删除，不提供查看按钮，也不响应整行点击。
 - 行内删除默认开启，带 `Popconfirm`；删除当前页最后一条会自动回退一页。
 - 需要刷新后保留页码时，把 `page` 受控传入，并用 `onPageChange` 写回路由；`onPageChange` 也会覆盖筛选重置和删除回退。
+
+### 业务字段配置
+
+列表字段和详情字段通常不同。每个业务用一个普通配置对象集中声明，不复制 schema：
+
+```ts
+export const postPageConfig = {
+  resource: 'posts',
+  title: '文章',
+  schema: postSchema,
+  list: {
+    fields: ['title', 'subtitle', 'status'],
+    presets: postListPresets,
+  },
+  detail: {
+    fields: ['title', 'subtitle', 'status', 'is_sticky'],
+  },
+};
+```
+
+页面消费同一份配置：
+
+```tsx
+<SchemaCrudList
+  resource={postPageConfig.resource}
+  schema={postPageConfig.schema}
+  title={postPageConfig.title}
+  fields={postPageConfig.list.fields}
+  presets={postPageConfig.list.presets}
+/>
+
+<SchemaCrudForm
+  resource={postPageConfig.resource}
+  schema={postPageConfig.schema}
+  id={id}
+  mode="view"
+  title={postPageConfig.title}
+  viewFields={postPageConfig.detail.fields}
+/>
+```
+
+- `fields` 按数组顺序生成列表列，未知 key 和 schema `hidden` 字段会被忽略。
+- `viewFields` 只在 `mode="view"` 生效；新建、编辑继续使用完整 schema。
+- 详情字段、列表字段都来自同一份 schema；需要额外计算列时继续用显式 `columns`。
 
 ### 详情 / 新建 / 编辑
 
@@ -80,6 +125,7 @@ posts_index({ page, size, ...params }) // => { rows, total }
 
 - `id` 为空进入创建，有值进入详情；不传 `mode` 时，详情里的“编辑”由组件内部切换。
 - 表单默认横向布局，标签宽 `120px`；要改宽度传 `formProps.labelCol`。
+- 详情可用 `viewFields` 筛选字段，组件内按声明顺序展示；新建和编辑不受影响。
 - 标题左侧有图标返回；底部是独立工具栏：删除、取消/返回与主操作统一靠右，删除排在最前。
 - 创建默认值写在 `schema.initialValues`，提交前转换写在 `schema.normalizeValues`。
 - 成功回调统一为 `onSuccess(event)`，按 `event.action` 区分 `create / update / delete`。

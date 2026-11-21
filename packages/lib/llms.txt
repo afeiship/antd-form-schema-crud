@@ -19,7 +19,7 @@ and expects:
 
   { rows: TRecord[], total: number }
 
-`page` and `size` are owned by the component. Unwrap any API envelope in the adapter.
+`page` and `size` are owned by the component. Unwrap any API envelope in the adapter. The four key names are configurable globally through `configureSchemaCrudList({ keys })`.
 
 ## Minimal list
 
@@ -56,6 +56,13 @@ Title bar: icon-only back on the left when `onBack` exists. Footer toolbar: all 
 
 Form defaults: `layout="horizontal"`, `labelCol={{ flex: '120px' }}`, `wrapperCol={{ flex: 1 }}`. Override through `formProps`. The title has an icon-only back; footer carries the text actions. `Card.extra` is caller-owned content.
 
+## Field selection
+
+- `SchemaCrudList.fields?: readonly string[]`: restrict schema-derived columns, in order. Omitted = all; explicit `columns` wins; unknown and schema-hidden fields are skipped.
+- `SchemaCrudForm.viewFields?: readonly string[]`: restrict fields in view mode, in order. Create/edit always use the full schema.
+
+Per business, keep one plain config object for `list.fields` and `detail.fields`; pass them to the two components.
+
 ## List presets
 
 ```ts
@@ -67,7 +74,7 @@ const presets: ListPresets = {
 };
 ```
 
-Column priority: explicit `columns` > `presets` > `schema.fields.label` > field key.
+Column priority: explicit `columns` > `fields` > `presets` > `schema.fields.label` > field key. `fields` only filters schema-derived columns.
 Presets only decorate existing schema fields; they never add columns. `hidden: true` removes a derived column without touching the form field. No `render` in presets.
 
 ## Actions

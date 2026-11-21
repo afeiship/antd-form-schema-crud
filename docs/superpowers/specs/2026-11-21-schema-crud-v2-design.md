@@ -191,6 +191,8 @@ export interface SchemaCrudFormProps<TRecord = CrudRecord> {
 
   /** 默认 layout: 'horizontal'，labelCol flex 120px，wrapperCol flex 1。 */
   formProps?: CrudFormProps;
+  /** 仅 mode="view" 生效：按数组顺序展示这些字段；创建、编辑永远使用完整 schema。 */
+  viewFields?: readonly string[];
 
   onSuccess?: (event: CrudSuccessEvent) => void;
   /** 创建态取消、预览态返回。编辑态取消由组件内部回到预览。 */
