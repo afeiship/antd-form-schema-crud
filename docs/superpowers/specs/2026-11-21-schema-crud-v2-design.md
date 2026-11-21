@@ -426,11 +426,8 @@ onSuccess({ action: 'create', result, values });
 ## 依赖
 
 - `antd` 保持 peer dependency。
-
-- 新增 `@ant-design/icons` 依赖，用于返回 / 保存 / 编辑 / 删除图标。
-
-- 新增 `fast-deep-equal` 依赖，用于未保存判断。
-
+- 新增 `@ant-design/icons` peer dependency，用于返回 / 保存 / 编辑 / 删除图标。
+- 未保存判断使用内部 `deepEqual`，不新增深比较依赖。
 - 不新增路由、请求、i18n 依赖。
 
 ## 示例改造
