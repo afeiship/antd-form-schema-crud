@@ -64,6 +64,7 @@ export function useSchemaCrudFormState<TRecord extends CrudRecord = CrudRecord>(
     id,
     schema,
     record: request.record as CrudValues | undefined,
+    recordVersion: request.recordVersion,
     reloadVersion: request.reloadVersion,
     onValuesChange: userOnValuesChange,
   });

@@ -23,6 +23,8 @@ interface UseRecordLoaderOptions<TRecord extends CrudRecord> {
 
 interface RecordLoaderResult<TRecord> {
   record: TRecord | undefined;
+  /** Bumps after every successful load so the form can remount from the new record. */
+  recordVersion: number;
   loadState: LoadState;
   loadError: unknown;
 }
@@ -44,6 +46,7 @@ export function useRecordLoader<TRecord extends CrudRecord>({
 }: UseRecordLoaderOptions<TRecord>): RecordLoaderResult<TRecord> {
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [record, setRecord] = useState<TRecord | undefined>(undefined);
+  const [recordVersion, setRecordVersion] = useState(0);
   const [loadError, setLoadError] = useState<unknown>(null);
   const onErrorRef = useLatest(onError);
   const onLoadStartRef = useLatest(onLoadStart);
@@ -74,6 +77,7 @@ export function useRecordLoader<TRecord extends CrudRecord>({
       .then((data) => {
         if (!active) return;
         setRecord(data);
+        setRecordVersion((value) => value + 1);
         setLoadState('ready');
       })
       .catch((error) => {
@@ -88,5 +92,5 @@ export function useRecordLoader<TRecord extends CrudRecord>({
     };
   }, [enabled, blocked, id, resource, reloadVersion, apiRef, onErrorRef, onLoadStartRef]);
 
-  return { record, loadState, loadError };
+  return { record, recordVersion, loadState, loadError };
 }

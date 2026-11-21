@@ -83,9 +83,18 @@ export const postPageConfig = {
 };
 ```
 
-页面消费同一份配置：
+单页新建/编辑优先用一个 `form` 模式，不需要拆两个页面或两套 mode：
 
 ```tsx
+<SchemaCrudForm
+  resource="posts"
+  schema={postSchema}
+  id={id}
+  mode="form"
+  title="文章"
+  onBack={() => navigate('/posts')}
+/>
+
 <SchemaCrudList
   resource={postPageConfig.resource}
   schema={postPageConfig.schema}
@@ -106,6 +115,7 @@ export const postPageConfig = {
 
 - `fields` 按数组顺序生成列表列，未知 key 和 schema `hidden` 字段会被忽略。
 - `viewFields` 只在 `mode="view"` 生效；新建、编辑继续使用完整 schema。
+- `mode="form"` 用一个页面同时承接新建和编辑；详情仍使用 `mode="view"`。
 - 详情字段、列表字段都来自同一份 schema；需要额外计算列时继续用显式 `columns`。
 
 ### 详情 / 新建 / 编辑
@@ -124,6 +134,7 @@ export const postPageConfig = {
 ```
 
 - `id` 为空进入创建，有值进入详情；不传 `mode` 时，详情里的“编辑”由组件内部切换。
+- 只需要新建/编辑时传 `mode="form"`：无 `id` 为创建，有 `id` 直接进入编辑，不经过详情态。保存后停留在编辑并重新加载记录；取消或删除调用 `onBack`。大部分单页表单用这个即可。
 - 表单默认横向布局，标签宽 `120px`；要改宽度传 `formProps.labelCol`。
 - 详情可用 `viewFields` 筛选字段，组件内按声明顺序展示；新建和编辑不受影响。
 - 新建、编辑支持 `Cmd+S`（macOS）/ `Ctrl+S`（Windows/Linux）保存，并拦截浏览器自带的保存网页；详情态不绑定快捷键。

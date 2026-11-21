@@ -17,10 +17,6 @@ export function PostsEditPage() {
     navigate(`/posts/${id}${search}`);
   };
 
-  const handleModeChange = () => {
-    navigate(`/posts${search}`);
-  };
-
   return (
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-4xl">
@@ -32,9 +28,8 @@ export function PostsEditPage() {
           resource={postPageConfig.resource}
           schema={postPageConfig.schema}
           id={id}
-          mode="edit"
+          mode="form"
           title={postPageConfig.title}
-          onModeChange={handleModeChange}
           onSuccess={handleSuccess}
           onBack={() => navigate(`/posts${search}`)}
           onError={(error) => message.error(errorMessage(error, '保存失败，请重试。'))}

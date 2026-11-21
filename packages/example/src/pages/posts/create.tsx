@@ -27,7 +27,7 @@ export function PostsCreatePage() {
         <SchemaCrudForm<PostRecord>
           resource={postPageConfig.resource}
           schema={postPageConfig.schema}
-          mode="create"
+          mode="form"
           title={postPageConfig.title}
           onSuccess={handleSuccess}
           onBack={() => navigate(`/posts${search}`)}

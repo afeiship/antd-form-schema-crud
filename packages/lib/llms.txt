@@ -52,6 +52,8 @@ Route-backed pagination: pass controlled `page` and write it back in `onPageChan
 
 `id` absent => create. `id` present => view by default; internal edit switch. Controlled mode: pass `mode` and `onModeChange`.
 
+`mode="form"` is the one-page create/edit variant: no id => create, id present => edit immediately, never view. Saving stays in edit and reloads the record; cancel and delete call `onBack`.
+
 Create/edit save with Cmd+S (macOS) or Ctrl+S (Windows/Linux); the browser Save dialog is suppressed. The shortcut shares the save button's conditions (form ready, no request in flight, dirty in edit). View mode does not bind it.
 
 Title bar: icon-only back on the left when `onBack` exists. Footer toolbar: all actions are right-aligned in one group, delete first, then cancel/back, then the primary action. It has a top border and a light background.

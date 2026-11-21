@@ -9,6 +9,7 @@ interface UseCrudFormOptions {
   id?: CrudId;
   schema: FormSchema;
   record?: CrudValues;
+  recordVersion?: number;
   reloadVersion: number;
   onValuesChange?: (changedValues: CrudValues, allValues: CrudValues) => void;
 }
@@ -22,6 +23,7 @@ export function useCrudForm({
   id,
   schema,
   record,
+  recordVersion = 0,
   reloadVersion,
   onValuesChange,
 }: UseCrudFormOptions) {
@@ -41,7 +43,9 @@ export function useCrudForm({
     [schema, initialValues, mode]
   );
 
-  const formKey = `${mode}:${String(id ?? '')}:${reloadVersion}`;
+  // A reload loads a new record object; remount the form so initialValues
+  // follow that record instead of keeping the previous form store.
+  const formKey = `${mode}:${String(id ?? '')}:${reloadVersion}:${recordVersion}`;
   const formReady = readyKey === formKey;
   const { dirty, check: checkDirty } = useDirtyState(mode === 'edit', dirtyBaseline);
 

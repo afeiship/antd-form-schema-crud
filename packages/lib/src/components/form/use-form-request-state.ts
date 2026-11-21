@@ -64,7 +64,7 @@ export function useFormRequestState<TRecord extends CrudRecord>({
     onError,
   });
 
-  const { record, loadState, loadError } = useRecordLoader<TRecord>({
+  const { record, recordVersion, loadState, loadError } = useRecordLoader<TRecord>({
     enabled: needsLoad,
     blocked,
     id,
@@ -92,6 +92,7 @@ export function useFormRequestState<TRecord extends CrudRecord>({
     handleFinish,
     handleDelete,
     record,
+    recordVersion,
     loading,
     showForm,
     available,
