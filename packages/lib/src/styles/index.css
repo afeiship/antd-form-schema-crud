@@ -32,8 +32,27 @@
 }
 
 .antd-form-schema-crud__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   margin-inline: -4px 0;
-  padding-inline: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(0, 0, 0, 0.65);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.antd-form-schema-crud__back:hover,
+.antd-form-schema-crud__back:active,
+.antd-form-schema-crud__back:focus {
+  background: none;
+  color: #1677ff;
+  outline: none;
 }
 
 .antd-form-schema-crud__dirty {

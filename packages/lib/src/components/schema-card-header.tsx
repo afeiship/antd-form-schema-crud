@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Button, Space } from 'antd';
+import { Space } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { CLASS_NAME } from '../constants';
 import type { CrudMode } from '../types';
@@ -29,14 +29,14 @@ export function SchemaCardTitle({ mode, subject, dirty, showBack, onBack }: Sche
   return (
     <Space size={6}>
       {showBack ? (
-        <Button
+        <button
           className={`${CLASS_NAME}__back`}
-          type="text"
-          size="small"
-          icon={<ArrowLeftOutlined />}
+          type="button"
           aria-label="返回"
           onClick={onBack}
-        />
+        >
+          <ArrowLeftOutlined />
+        </button>
       ) : null}
       <span>{title}</span>
       {dirty ? <span className={`${CLASS_NAME}__dirty`} aria-label="有未保存修改" /> : null}
