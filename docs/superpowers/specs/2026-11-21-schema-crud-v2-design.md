@@ -1,8 +1,8 @@
-# SchemaCrud v2：参考 UI 与简化 API
+# SchemaCrudForm v2：参考 UI 与简化 API
 
 日期：2026-11-21
 
-状态：已实现
+状态：已实现；组件命名已定，代码待同步为 `SchemaCrudForm`
 
 关系：在 `2026-11-21-schema-crud-design.md` 的 v1 实现上做一次 API 收敛；底层字段能力仍由 `@jswork/antd-form-schema` 提供。
 
@@ -12,13 +12,15 @@ v1 已经能完成创建、编辑、预览、删除，但页面接入成本偏�
 
 这次要解决两件事：
 
+
+
 1. **UI 参考&#x20;**`react-ant-resource-form`：用 `Card` 作为统一壳，标题栏带返回和未保存标记，表单放进 `Spin`，操作按钮固定在底部。
 
 2. **API 收敛**：只保留资源、数据、生命周期三类入口，把能从 schema 推导的配置全部收回 schema，把三个成功回调合并成一个 `onSuccess`，把模式切换收进组件内部，同时保留受控模式作为逃生口。
 
 ## 一句话边界
 
-`SchemaCrud`**&#x20;仍然只负责一条记录：根据&#x20;**`resource + schema + id`**&#x20;渲染创建、预览或编辑，并处理 show/create/update/destroy；列表、路由、页面框架和弹层容器仍由业务控制。**
+`SchemaCrudForm` 仍然只负责一条记录：根据 `resource + schema + id` 渲染创建、预览或编辑，并处理 show/create/update/destroy；列表、路由、页面框架和弹层容器仍由业务控制。
 
 ## 参考项目审计
 
@@ -26,17 +28,19 @@ v1 已经能完成创建、编辑、预览、删除，但页面接入成本偏�
 
 ### 值得吸收的 UI
 
-- 根容器是 `Card`，标题在 `Card.title`，操作在 `Card.extra`，不再额外维护一套 header。
 
-- 标题自动区分新建 / 编辑，编辑态有橙色未保存标记。
 
-- 顶部返回按钮使用 `ArrowLeftOutlined`，按钮尺寸偏小。
+* 根容器是 `Card`，标题在 `Card.title`，操作在 `Card.extra`，不再额外维护一套 header。
 
-- 内容区统一包 `Spin`，加载时保留卡片结构，减少布局跳动。
+* 标题自动区分新建 / 编辑，编辑态有橙色未保存标记。
 
-- 底部按钮固定在表单下方：保存、返回；保存按钮在编辑态默认禁用，直到表单发生变化。
+* 顶部返回按钮使用 `ArrowLeftOutlined`，按钮尺寸偏小。
 
-- 表单默认 `layout="vertical"`，视觉上比横向表单更适合业务详情页。
+* 内容区统一包 `Spin`，加载时保留卡片结构，减少布局跳动。
+
+* 底部按钮固定在表单下方：保存、返回；保存按钮在编辑态默认禁用，直到表单发生变化。
+
+* 表单默认 `layout="vertical"`，视觉上比横向表单更适合业务详情页。
 
 ### 不照搬的 API
 
@@ -44,55 +48,63 @@ v1 已经能完成创建、编辑、预览、删除，但页面接入成本偏�
 
 v2 明确不引入：
 
-- 不做路由 blocker：离开拦截属于路由层，组件不依赖 `react-router`。
 
-- 不做 `history.back()`：返回行为由 `onBack` 注入，组件不假设宿主路由。
 
-- 不做全局事件 `nx.$event.emit`：成功后统一走 `onSuccess`，由业务决定是否刷新列表。
+* 不做路由 blocker：离开拦截属于路由层，组件不依赖 `react-router`。
 
-- 不做 `lang` /i18n：默认中文，文案通过 `actions.*.text` 覆盖。
+* 不做 `history.back()`：返回行为由 `onBack` 注入，组件不假设宿主路由。
 
-- 不做热键保存：需要时由业务在页面层监听。
+* 不做全局事件 `nx.$event.emit`：成功后统一走 `onSuccess`，由业务决定是否刷新列表。
 
-- 不做 `payloadFields`：提交前裁剪字段优先用 `schema.normalizeValues`；协议差异用 `api` 适配。
+* 不做 `lang` /i18n：默认中文，文案通过 `actions.*.text` 覆盖。
 
-- 不做 `initGuard` / `submitGuard`：请求前校验属于业务 API 适配层，不进入组件生命周期。
+* 不做热键保存：需要时由业务在页面层监听。
+
+* 不做 `payloadFields`：提交前裁剪字段优先用 `schema.normalizeValues`；协议差异用 `api` 适配。
+
+* 不做 `initGuard` / `submitGuard`：请求前校验属于业务 API 适配层，不进入组件生命周期。
 
 ## 目标
 
-- 常用接入只写 4 到 5 个 prop。
 
-- 不传 `mode` 时，组件根据 `id` 自动决定创建或预览，并允许在组件内从预览切到编辑。
 
-- 创建初始值、提交前转换优先使用 `schema.initialValues` 和 `schema.normalizeValues`，不再增加同义 prop。
+* 常用接入只写 4 到 5 个 prop。
 
-- 成功回调合并为 `onSuccess(event)`，用 `event.action` 区分 create/update/delete。
+* 不传 `mode` 时，组件根据 `id` 自动决定创建或预览，并允许在组件内从预览切到编辑。
 
-- UI 统一为 Card 壳，标题、返回、未保存标记、底部操作由组件负责。
+* 创建初始值、提交前转换优先使用 `schema.initialValues` 和 `schema.normalizeValues`，不再增加同义 prop。
 
-- 保留受控 `mode`、`api`、`actions`、`formProps` 作为进阶逃生口。
+* 成功回调合并为 `onSuccess(event)`，用 `event.action` 区分 create/update/delete。
 
-- 不改变底层表单渲染、schema 不污染、请求竞态丢弃这些既有约束。
+* UI 统一为 Card 壳，标题、返回、未保存标记、底部操作由组件负责。
+
+* 保留受控 `mode`、`api`、`actions`、`formProps` 作为进阶逃生口。
+
+* 不改变底层表单渲染、schema 不污染、请求竞态丢弃这些既有约束。
 
 ## 非目标
 
-- 不做列表、分页、筛选、表格。
 
-- 不做 Modal / Drawer 内建容器。
 
-- 不做字段级权限，按钮显隐通过 `actions.* = false` 控制。
+* 不做列表、分页、筛选、表格。
 
-- 不做请求缓存、乐观更新、React Query / SWR。
+* 不做 Modal / Drawer 内建容器。
 
-- 不做异步 schema。
+* 不做字段级权限，按钮显隐通过 `actions.* = false` 控制。
 
-- 不做内置 toast；成功 / 失败提示由业务在 `onSuccess` / `onError` 里处理。
+* 不做请求缓存、乐观更新、React Query / SWR。
 
-- 不做未保存离开确认；只在编辑态显示未保存标记并禁用保存按钮。
+* 不做异步 schema。
+
+* 不做内置 toast；成功 / 失败提示由业务在 `onSuccess` / `onError` 里处理。
+
+* 不做未保存离开确认；只在编辑态显示未保存标记并禁用保存按钮。
 
 ## v2 API
 
 ### 基础类型
+
+
 
 ```
 export type CrudMode = 'create' | 'view' | 'edit';
@@ -114,7 +126,27 @@ export type CrudFormProps = Omit<
 >;
 ```
 
+### 组件命名
+
+原 `SchemaCrud` 改名为 `SchemaCrudForm`，与列表组件 `SchemaCrudList` 成对：
+
+- `SchemaCrudForm`：一条记录的创建、预览、编辑、删除。
+- `SchemaCrudList`：一个资源的列表、分页、行操作。
+
+本次改名发生在 `2.0.0` 发布前，因此直接使用新名，不保留 `SchemaCrud` 别名。示例、测试和 README 同步更新。
+
+同步改名：
+
+- `SchemaCrudProps` → `SchemaCrudFormProps`。
+- `AntdFormSchemaCrud` → `AntdFormSchemaCrudForm`。
+- `configureSchemaCrud` → `configureSchemaCrudForm`。
+- `getSchemaCrudDefaults` → `getSchemaCrudFormDefaults`。
+- `resetSchemaCrudDefaults` → `resetSchemaCrudFormDefaults`。
+- `SchemaCrudDefaults` → `SchemaCrudFormDefaults`。
+
 ### 组件 props
+
+
 
 ```
 export interface CrudActionConfig {
@@ -138,7 +170,7 @@ export type CrudSuccessEvent =
   | { action: 'update'; result: unknown; values: CrudValues }
   | { action: 'delete'; result: unknown };
 
-export interface SchemaCrudProps<TRecord = CrudRecord> {
+export interface SchemaCrudFormProps<TRecord = CrudRecord> {
   /** 资源前缀，解析 `${resource}_show/create/update/destroy`。 */
   resource?: string;
   schema: FormSchema;
@@ -168,14 +200,15 @@ export interface SchemaCrudProps<TRecord = CrudRecord> {
   onError?: (error: unknown, action: CrudAction) => void;
 
   className?: string;
-  style?: CSSProperties;
 }
 ```
 
 ### 常用接入
 
+
+
 ```
-<SchemaCrud
+<SchemaCrudForm
   resource="posts"
   schema={postSchema}
   id={activeId}
@@ -186,6 +219,8 @@ export interface SchemaCrudProps<TRecord = CrudRecord> {
 ```
 
 创建初始值与提交前转换不再单独传 prop：
+
+
 
 ```
 const postSchema: FormSchema = {
@@ -201,23 +236,27 @@ const postSchema: FormSchema = {
 
 ## API 简化对照
 
-| v1                              | v2                            | 说明                                                     |
-| ------------------------------- | ----------------------------- | -------------------------------------------------------- |
-| `mode` 必填                     | `mode` 可选                   | 未传时由 `id` 推导；组件内部可从 view 进 edit            |
-| `resource`                      | `resource`                    | 保留，避免无意义改名                                     |
-| `createInitialValues`           | `schema.initialValues`        | 不再保留同义 prop                                        |
-| `beforeSubmit`                  | `schema.normalizeValues`      | 同步转换收回 schema；异步转换改用 `api` 适配             |
-| `mapRecord`                     | 删除                          | 在 `api.show` 或业务层完成映射，组件不维护第二套数据来源 |
-| `onCreated/onUpdated/onDeleted` | `onSuccess(event)`            | 用 `event.action` 分发                                   |
-| `onEdit`                        | 删除                          | 预览态 “编辑” 由组件内部切换到 edit                      |
-| `onCancel`                      | `onBack`                      | 只表示离开当前记录；编辑态取消在组件内回预览             |
-| `canEdit` / `canDelete`         | `actions.edit/delete = false` | 只保留一套按钮显隐配置                                   |
+
+
+| v1                              | v2                            | 说明                                    |
+| ------------------------------- | ----------------------------- | ------------------------------------- |
+| `mode` 必填                       | `mode` 可选                     | 未传时由 `id` 推导；组件内部可从 view 进 edit       |
+| `resource`                      | `resource`                    | 保留，避免无意义改名                            |
+| `createInitialValues`           | `schema.initialValues`        | 不再保留同义 prop                           |
+| `beforeSubmit`                  | `schema.normalizeValues`      | 同步转换收回 schema；异步转换改用 `api` 适配         |
+| `mapRecord`                     | 删除                            | 在 `api.show` 或业务层完成映射，组件不维护第二套数据来源    |
+| `onCreated/onUpdated/onDeleted` | `onSuccess(event)`            | 用 `event.action` 分发                   |
+| `onEdit`                        | 删除                            | 预览态 “编辑” 由组件内部切换到 edit                |
+| `onCancel`                      | `onBack`                      | 只表示离开当前记录；编辑态取消在组件内回预览                |
+| `canEdit` / `canDelete`         | `actions.edit/delete = false` | 只保留一套按钮显隐配置                           |
 | `deleteConfirm`                 | `confirmDelete?: boolean`     | 不再透传整个 `PopconfirmProps`；需要复杂确认由业务包一层 |
-| `footer`                        | 删除                          | 默认操作固定，按钮通过 `actions` 配置                    |
-| `onFormReady`                   | 删除                          | v2 不暴露命令式 form；自定义操作不再由组件内 footer 承担 |
-| —                               | `onModeChange`                | 仅受控模式需要                                           |
+| `footer`                        | 删除                            | 默认操作固定，按钮通过 `actions` 配置              |
+| `onFormReady`                   | 删除                            | v2 不暴露命令式 form；自定义操作不再由组件内 footer 承担  |
+| —                               | `onModeChange`                | 仅受控模式需要                               |
 
 ## 模式决定
+
+
 
 ```
 const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view');
@@ -225,23 +264,28 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 
 规则：
 
-- `id` 为空 → `create`。
 
-- `id` 有值且没有传 `mode` → `view`。
 
-- 传 `mode` → 完全受控，组件不自行切换，只调用 `onModeChange` 请求切换。
+* `id` 为空 → `create`。
 
-- 未传 `mode` → 组件内部维护当前模式：
+* `id` 有值且没有传 `mode` → `view`。
 
-  - 预览态点 “编辑” → 内部切到 `edit`；
+* 传 `mode` → 完全受控，组件不自行切换，只调用 `onModeChange` 请求切换。
 
-  - 编辑态点 “取消” 或保存成功 → 内部切回 `view`；
+* 未传 `mode` → 组件内部维护当前模式：
 
-  - `id` 变化 → 重新按 `id` 推导。
 
-- 删除成功后，未受控模式内部回到 `create`，等待业务设置下一条 `id` 或保持新建。
+  * 预览态点 “编辑” → 内部切到 `edit`；
+
+  * 编辑态点 “取消” 或保存成功 → 内部切回 `view`；
+
+  * `id` 变化 → 重新按 `id` 推导。
+
+* 删除成功后，未受控模式内部回到 `create`，等待业务设置下一条 `id` 或保持新建。
 
 ## UI 结构
+
+
 
 ```
 <Card
@@ -264,8 +308,10 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 
 `title` 是标题主体，不是完整标题：
 
+
+
 | mode   | 渲染           |
-| ------ | -------------- |
+| ------ | ------------ |
 | create | `新建${title}` |
 | view   | `${title}详情` |
 | edit   | `编辑${title}` |
@@ -273,6 +319,8 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 默认 `title = '记录'`。`title={false}` 时不渲染标题栏文字，但 `extra` 仍可显示。
 
 编辑态且表单有变化时，标题后追加一个橙色圆点：
+
+
 
 ```
 <span className="antd-form-schema-crud__dirty" aria-label="有未保存修改" />
@@ -282,67 +330,81 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 
 `extra` 原样渲染，然后追加返回按钮。返回按钮只在 `onBack` 存在时显示：
 
+
+
 ```
 <Button size="small" icon={<ArrowLeftOutlined />} onClick={handleBack}>
   返回
 </Button>
 ```
 
-- 预览态、创建态点击调用 `onBack`。
 
-- 编辑态点击等同 “取消”：未受控时回到预览，受控时调用 `onModeChange('view')`。
 
-- `actions.cancel === false` 时，标题栏返回按钮也隐藏，避免出现两套不一致的返回入口。
+* 预览态、创建态点击调用 `onBack`。
+
+* 编辑态点击等同 “取消”：未受控时回到预览，受控时调用 `onModeChange('view')`。
+
+* `actions.cancel === false` 时，标题栏返回按钮也隐藏，避免出现两套不一致的返回入口。
 
 ### 底部操作
 
-| 模式   | 左侧 | 右侧       |
-| ------ | ---- | ---------- |
-| create | 取消 | 创建       |
+
+
+| 模式     | 左侧 | 右侧    |
+| ------ | -- | ----- |
+| create | 取消 | 创建    |
 | edit   | 删除 | 取消、保存 |
 | view   | 删除 | 返回、编辑 |
 
-- 保存 / 创建按钮 `type="primary"`，带 `SaveOutlined`。
 
-- 编辑 / 删除按钮带 `EditOutlined` / `DeleteOutlined`。
 
-- 删除默认 `Popconfirm`，`confirmDelete={false}` 时直接删除。
+* 保存 / 创建按钮 `type="primary"`，带 `SaveOutlined`。
 
-- 创建按钮在表单 ready 后可用；编辑保存按钮还要求表单有变化。
+* 编辑 / 删除按钮带 `EditOutlined` / `DeleteOutlined`。
 
-- 提交、删除期间互斥禁用。
+* 删除默认 `Popconfirm`，`confirmDelete={false}` 时直接删除。
 
-- 加载失败或缺少 API 时，只保留取消 / 返回。
+* 创建按钮在表单 ready 后可用；编辑保存按钮还要求表单有变化。
+
+* 提交、删除期间互斥禁用。
+
+* 加载失败或缺少 API 时，只保留取消 / 返回。
 
 ### 未保存状态
 
-- 编辑态记录第一次加载完成后的表单值作为基线。
 
-- `SchemaForm` 的 `onValuesChange` 触发后，用深比较判断是否变化。
 
-- 变化时设置 `touched=true`，显示标题圆点，并启用保存按钮。
+* 编辑态记录第一次加载完成后的表单值作为基线。
 
-- 保存成功、重新加载、切换到预览后重置 `touched=false`。
+* `SchemaForm` 的 `onValuesChange` 触发后，用深比较判断是否变化。
 
-- 创建态不做未保存判断，创建按钮始终可用。
+* 变化时设置 `touched=true`，显示标题圆点，并启用保存按钮。
+
+* 保存成功、重新加载、切换到预览后重置 `touched=false`。
+
+* 创建态不做未保存判断，创建按钮始终可用。
 
 使用 `fast-deep-equal` 做未保存判断，与参考项目行为一致。
 
 ### 加载与错误
 
-- 首次 `show` 加载：`Spin` 包住卡片内容，保留标题栏和底部骨架。
 
-- 加载失败：内容区显示 `Alert`，附 “重试” 按钮；底部只保留返回。
 
-- 提交失败：保留表单值，在表单和底部操作之间显示错误 `Alert`。
+* 首次 `show` 加载：`Spin` 包住卡片内容，保留标题栏和底部骨架。
 
-- 删除失败：保留当前记录和模式，显示错误 `Alert`。
+* 加载失败：内容区显示 `Alert`，附 “重试” 按钮；底部只保留返回。
 
-- 所有错误继续调用 `onError(error, action)`。
+* 提交失败：保留表单值，在表单和底部操作之间显示错误 `Alert`。
+
+* 删除失败：保留当前记录和模式，显示错误 `Alert`。
+
+* 所有错误继续调用 `onError(error, action)`。
 
 ## 行为
 
 ### create
+
+
 
 1. 不调用 `show`。
 
@@ -352,13 +414,19 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 
 4. 成功后触发：
 
+
+
 ```
 onSuccess({ action: 'create', result, values });
 ```
 
+
+
 1. 组件不自动设置新 id；业务拿到 `result` 后自行更新 `id` 或跳转。
 
 ### edit
+
+
 
 1. 要求 `id` 和 `show`。
 
@@ -372,6 +440,8 @@ onSuccess({ action: 'create', result, values });
 
 ### view
 
+
+
 1. 要求 `id` 和 `show`。
 
 2. 复用 `SchemaForm` 的 `viewMode`，不显示保存按钮。
@@ -381,6 +451,8 @@ onSuccess({ action: 'create', result, values });
 4. 点 “返回”：调用 `onBack`。
 
 ### delete
+
+
 
 1. 要求 `destroy` 和 `id`。
 
@@ -392,21 +464,25 @@ onSuccess({ action: 'create', result, values });
 
 ## 必填规则
 
-- `resource` 和 `api` 至少有一个。
 
-- create 需要 `create`。
 
-- view 需要 `id` + `show`。
+* `resource` 和 `api` 至少有一个。
 
-- edit 需要 `id` + `show` + `update`。
+* create 需要 `create`。
 
-- delete 需要 `destroy`；缺失时不显示删除按钮。
+* view 需要 `id` + `show`。
 
-- 当前模式缺少必需条件时渲染 `Alert`，不发请求。
+* edit 需要 `id` + `show` + `update`。
+
+* delete 需要 `destroy`；缺失时不显示删除按钮。
+
+* 当前模式缺少必需条件时渲染 `Alert`，不发请求。
 
 ## 样式
 
 根节点仍使用 `data-component="antd-form-schema-crud"`。v2 的 class 结构：
+
+
 
 ```
 .antd-form-schema-crud           Card 根节点
@@ -417,25 +493,34 @@ onSuccess({ action: 'create', result, values });
 
 只写布局样式：
 
-- footer 上边距 16px，左右分布，按钮间距 8px；
 
-- dirty 圆点 6px，橙色；
 
-- 不覆盖 Ant Design Card、Form、Descriptions 内部样式。
+* footer 上边距 16px，左右分布，按钮间距 8px；
+
+* dirty 圆点 6px，橙色；
+
+* 不覆盖 Ant Design Card、Form、Descriptions 内部样式。
 
 ## 依赖
 
-- `antd` 保持 peer dependency。
-- 新增 `@ant-design/icons` peer dependency，用于返回 / 保存 / 编辑 / 删除图标。
-- 新增 `fast-deep-equal` 依赖，用于未保存判断。
-- 不新增路由、请求、i18n 依赖。
+
+
+* `antd` 保持 peer dependency。
+
+* 新增 `@ant-design/icons` peer dependency，用于返回 / 保存 / 编辑 / 删除图标。
+
+* 新增 `fast-deep-equal` 依赖，用于未保存判断。
+
+* 不新增路由、请求、i18n 依赖。
 
 ## 示例改造
 
 v1 示例页面需要同时维护 `mode`、`refresh`、三个成功回调和分段控件。v2 示例收敛为：
 
+
+
 ```
-<SchemaCrud
+<SchemaCrudForm
   resource="posts"
   schema={postSchema}
   id={activeId}
@@ -453,6 +538,8 @@ v1 示例页面需要同时维护 `mode`、`refresh`、三个成功回调和分�
 ```
 
 `handleSuccess` 统一处理：
+
+
 
 ```
 const handleSuccess = async (event: CrudSuccessEvent) => {
@@ -473,6 +560,8 @@ const handleSuccess = async (event: CrudSuccessEvent) => {
 
 这是破坏性变更，按 `2.0.0` 发布。迁移步骤：
 
+
+
 1. `mode` 从必填改为可选；不再在页面维护 view/edit 切换时直接删除 `mode` 和 `Segmented`。
 
 2. `createInitialValues` 移到 `schema.initialValues`。
@@ -492,6 +581,8 @@ const handleSuccess = async (event: CrudSuccessEvent) => {
 9. 删除 `footer`、`onFormReady`；需要自定义操作时不再由组件 footer 承担，应把业务操作放到 Card `extra`。
 
 ## 测试计划
+
+
 
 1. 不传 `mode` 且无 `id` 渲染创建，不调用 show。
 
@@ -524,6 +615,8 @@ const handleSuccess = async (event: CrudSuccessEvent) => {
 15. Card 标题在三种模式下分别为 “新建文章 / 文章详情 / 编辑文章”。
 
 ## 待确认
+
+
 
 1. `title` 作为标题主体（“文章” 自动拼成 “新建文章 / 文章详情 / 编辑文章”）是否符合预期，还是希望传完整标题？
 

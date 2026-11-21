@@ -4,7 +4,7 @@
 
 状态：待确认
 
-关系：在 `SchemaCrud` v2 之上增加列表组件。列表只负责 `xx_index`、分页、行操作和列表级动作；新建、详情、编辑通过路由进入独立的 `SchemaCrud` 页面。
+关系：在 `SchemaCrudForm` v2 之上增加列表组件。列表只负责 `xx_index`、分页、行操作和列表级动作；新建、详情、编辑通过路由进入独立的 `SchemaCrudForm` 页面。
 
 ## 一句话边界
 
@@ -12,7 +12,7 @@
 
 ## 意图
 
-`SchemaCrud` 已经解决了“一条记录”的创建、预览、编辑、删除。列表页还缺一套标准实现：
+`SchemaCrudForm` 已经解决了“一条记录”的创建、预览、编辑、删除。列表页还缺一套标准实现：
 
 - 调用 `xx_index`；
 - 维护 `page / size`；
@@ -57,7 +57,7 @@
 - 服务端分页由组件内部维护，业务只通过 `params` 传筛选条件。
 - 列可以由业务显式传入，也可以从 schema 字段自动推导。
 - 行内动作通过回调交给路由；组件不假设 Router 实现。
-- 删除支持两种入口：列表行内删除，或详情页 `SchemaCrud` 删除。
+- 删除支持两种入口：列表行内删除，或详情页 `SchemaCrudForm` 删除。
 - 列表加载、空数据、接口错误、分页请求竞态都有明确状态。
 - 示例使用 React Router，把列表、新建、详情、编辑四个页面串起来。
 
@@ -70,7 +70,7 @@
 - 不做前端排序、前端过滤、前端分页。
 - 不做请求缓存、React Query / SWR、乐观更新。
 - 不做全局 toast；成功和失败提示由业务的 `onSuccess` / `onError` 处理。
-- 不给列表增加独立的全局配置函数；第一版复用 `configureSchemaCrud` 的详情默认值。
+- 不给列表增加独立的全局配置函数；第一版复用 `configureSchemaCrudForm` 的详情默认值。
 
 ## 数据契约
 
@@ -119,10 +119,13 @@ interface CrudListResult<TRecord> {
 新增导出：
 
 ```ts
-export { SchemaCrudList } from '@jswork/antd-form-schema-crud';
+export {
+  SchemaCrudForm,
+  SchemaCrudList,
+} from '@jswork/antd-form-schema-crud';
 ```
 
-`SchemaCrud` 保持“一条记录”的语义不变，`SchemaCrudList` 是“一个资源列表”。
+命名成对：`SchemaCrudForm` 负责一条记录，`SchemaCrudList` 负责一个资源列表。原 `SchemaCrud` 改名为 `SchemaCrudForm`，不保留旧名。
 
 ### 类型
 
@@ -320,7 +323,7 @@ await api.destroy({ id });
 await reloadListAfterDelete();
 ```
 
-详情页删除继续复用 `SchemaCrud` 的底部删除按钮和确认逻辑。两处都触发 `onSuccess({ action: 'delete', result })`。
+详情页删除继续复用 `SchemaCrudForm` 的底部删除按钮和确认逻辑。两处都触发 `onSuccess({ action: 'delete', result })`。
 
 ### 错误
 
@@ -357,7 +360,7 @@ await reloadListAfterDelete();
 ### 新建页
 
 ```tsx
-<SchemaCrud
+<SchemaCrudForm
   resource="posts"
   schema={postSchema}
   title="文章"
@@ -371,12 +374,12 @@ await reloadListAfterDelete();
 />
 ```
 
-`id` 为空时，`SchemaCrud` 自动进入创建态。
+`id` 为空时，`SchemaCrudForm` 自动进入创建态。
 
 ### 详情页
 
 ```tsx
-<SchemaCrud
+<SchemaCrudForm
   resource="posts"
   schema={postSchema}
   id={id}
@@ -395,7 +398,7 @@ await reloadListAfterDelete();
 编辑页需要直接进入编辑态，因此使用受控 `mode="edit"`：
 
 ```tsx
-<SchemaCrud
+<SchemaCrudForm
   resource="posts"
   schema={postSchema}
   id={id}
@@ -408,7 +411,7 @@ await reloadListAfterDelete();
 />
 ```
 
-保存成功或取消编辑时，`SchemaCrud` 会请求切到 `view`，这里把路由导航到详情页。
+保存成功或取消编辑时，`SchemaCrudForm` 会请求切到 `view`，这里把路由导航到详情页。
 
 ## 组件拆分
 
@@ -433,14 +436,14 @@ packages/lib/src/
 - `use-crud-list`：只处理 `index` 请求和分页状态，不碰表单。
 - `use-crud-columns`：只生成列定义，不请求数据。
 - `SchemaCrudList`：纯列表 UI 和行级动作，不做路由。
-- `SchemaCrud`：保持现状，不新增列表逻辑。
+- `SchemaCrudForm`：保持现状，不新增列表逻辑。
 
 ## 与现有能力的关系
 
 - `schema` 同时驱动表单、预览和列表默认列。
 - `resource` 同时驱动五个接口名：`index/show/create/update/destroy`。
-- `configureSchemaCrud` 的 `title / confirmDelete / actions / formProps` 仍作用于详情页的 `SchemaCrud`，不影响列表动作。
-- 未保存判断、删除确认、底部按钮继续由 `SchemaCrud` 负责，不在列表层重复实现。
+- `configureSchemaCrudForm` 的 `title / confirmDelete / actions / formProps` 仍作用于详情页的 `SchemaCrudForm`，不影响列表动作。
+- 未保存判断、删除确认、底部按钮继续由 `SchemaCrudForm` 负责，不在列表层重复实现。
 - 第一版不给 `SchemaCrudList` 增加独立的全局配置函数。
 
 ## 示例改造
@@ -508,12 +511,12 @@ packages/example/src/pages/posts/
 ## 版本与兼容
 
 - 给 `CrudApi` 增加可选 `index`，不破坏现有调用。
-- 新增 `SchemaCrudList`，不修改 `SchemaCrud` props。
-- 按 `2.1.0` minor 发布。
+- 原 `SchemaCrud` 改名为 `SchemaCrudForm`；`2.0.0` 尚未发布，不保留旧名别名。
+- 新增 `SchemaCrudList`，不修改 `SchemaCrudForm` props。
+- 列表能力按 `2.x` 发布。
 
 ## 待确认
 
-1. 列表组件名用 `SchemaCrudList`，可以吗？
-2. 行内删除默认开启，还是默认只在详情里删除？推荐默认开启，但保留 `Popconfirm`。
-3. 不传 `columns` 时从 schema 推导列表列，是否接受？推荐接受，显式 `columns` 仍然优先。
-4. 示例使用 `react-router-dom` 的 `BrowserRouter + Routes`，路由按 `/posts`、`/posts/new`、`/posts/:id`、`/posts/:id/edit` 组织，是否接受？
+1. 行内删除默认开启，还是默认只在详情里删除？推荐默认开启，但保留 `Popconfirm`。
+2. 不传 `columns` 时从 schema 推导列表列，是否接受？推荐接受，显式 `columns` 仍然优先。
+3. 示例使用 `react-router-dom` 的 `BrowserRouter + Routes`，路由按 `/posts`、`/posts/new`、`/posts/:id`、`/posts/:id/edit` 组织，是否接受？
