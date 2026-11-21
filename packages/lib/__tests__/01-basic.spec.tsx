@@ -56,7 +56,6 @@ describe('project defaults', () => {
     configureSchemaCrudForm({
       title: '用户',
       actions: { save: { text: '提交' }, delete: { text: '移除' } },
-      formProps: { layout: 'horizontal' },
     });
     render(<SchemaCrudForm schema={schema} api={api} id={7} />);
 
@@ -67,6 +66,8 @@ describe('project defaults', () => {
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     expect(await screen.findByLabelText('姓名')).toBeInTheDocument();
     expect(document.querySelector('.ant-form-horizontal')).toBeInTheDocument();
+    expect(document.querySelector('.ant-form-item-label')).toHaveStyle({ flex: '0 0 120px' });
+    expect(document.querySelector('.ant-card-head button')).toBeNull();
   });
 
   it('lets instance props override global defaults', () => {

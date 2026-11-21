@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
-import { Button, Space } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Space } from 'antd';
 import { CLASS_NAME } from '../constants';
 import type { CrudMode } from '../types';
 
@@ -34,22 +33,10 @@ export function SchemaCardTitle({ mode, subject, dirty }: SchemaCardTitleProps) 
 
 interface SchemaCardExtraProps {
   extra?: ReactNode;
-  showBack: boolean;
-  onBack: () => void;
 }
 
-/** Card extra: caller content, then the built-in back button. */
-export function SchemaCardExtra({ extra, showBack, onBack }: SchemaCardExtraProps) {
-  if (!extra && !showBack) return null;
-
-  return (
-    <Space>
-      {extra}
-      {showBack ? (
-        <Button size="small" icon={<ArrowLeftOutlined />} onClick={onBack}>
-          返回
-        </Button>
-      ) : null}
-    </Space>
-  );
+/** Card extra: caller-owned content only; navigation lives in the footer. */
+export function SchemaCardExtra({ extra }: SchemaCardExtraProps) {
+  if (!extra) return null;
+  return <Space>{extra}</Space>;
 }

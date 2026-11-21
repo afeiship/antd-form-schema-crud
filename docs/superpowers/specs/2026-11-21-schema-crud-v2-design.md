@@ -14,7 +14,7 @@ v1 已经能完成创建、编辑、预览、删除，但页面接入成本偏�
 
 
 
-1. **UI 参考&#x20;**`react-ant-resource-form`：用 `Card` 作为统一壳，标题栏带返回和未保存标记，表单放进 `Spin`，操作按钮固定在底部。
+1. **UI 参考&#x20;**`react-ant-resource-form`：用 `Card` 作为统一壳，标题栏带未保存标记，返回统一放在底部，表单放进 `Spin`，操作按钮固定在底部。
 
 2. **API 收敛**：只保留资源、数据、生命周期三类入口，把能从 schema 推导的配置全部收回 schema，把三个成功回调合并成一个 `onSuccess`，把模式切换收进组件内部，同时保留受控模式作为逃生口。
 
@@ -34,13 +34,13 @@ v1 已经能完成创建、编辑、预览、删除，但页面接入成本偏�
 
 * 标题自动区分新建 / 编辑，编辑态有橙色未保存标记。
 
-* 顶部返回按钮使用 `ArrowLeftOutlined`，按钮尺寸偏小。
+* 返回只放在底部，标题栏不再重复放返回按钮。
 
 * 内容区统一包 `Spin`，加载时保留卡片结构，减少布局跳动。
 
 * 底部按钮固定在表单下方：保存、返回；保存按钮在编辑态默认禁用，直到表单发生变化。
 
-* 表单默认 `layout="vertical"`，视觉上比横向表单更适合业务详情页。
+* 表单默认 `layout="horizontal"`，标签固定 `120px`，控件占满剩余宽度。
 
 ### 不照搬的 API
 
@@ -183,13 +183,13 @@ export interface SchemaCrudFormProps<TRecord = CrudRecord> {
 
   /** 卡片标题主体，默认“记录”。 */
   title?: ReactNode | false;
-  /** 卡片右上角自定义内容，会排在返回按钮之前。 */
+  /** 卡片右上角业务自定义内容；返回按钮只在底部出现。 */
   extra?: ReactNode;
   actions?: CrudActions;
   /** 默认 true；false 时删除不弹确认。 */
   confirmDelete?: boolean;
 
-  /** 默认 layout: 'vertical'。 */
+  /** 默认 layout: 'horizontal'，labelCol flex 120px，wrapperCol flex 1。 */
   formProps?: CrudFormProps;
 
   onSuccess?: (event: CrudSuccessEvent) => void;
@@ -328,23 +328,21 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 
 ### 右上角
 
-`extra` 原样渲染，然后追加返回按钮。返回按钮只在 `onBack` 存在时显示：
+`extra` 原样渲染，不再追加返回按钮。返回和取消统一由底部 footer 承担：
 
 
 
 ```
-<Button size="small" icon={<ArrowLeftOutlined />} onClick={handleBack}>
-  返回
-</Button>
+<Space>{extra}</Space>
 ```
 
 
 
-* 预览态、创建态点击调用 `onBack`。
+* 创建态、编辑态的底部取消由组件内部处理：未受控时回到预览，受控时调用 `onModeChange('view')`。
 
-* 编辑态点击等同 “取消”：未受控时回到预览，受控时调用 `onModeChange('view')`。
+* 预览态的底部返回调用 `onBack`。
 
-* `actions.cancel === false` 时，标题栏返回按钮也隐藏，避免出现两套不一致的返回入口。
+* `actions.cancel === false` 时底部取消/返回隐藏。
 
 ### 底部操作
 
@@ -496,6 +494,8 @@ onSuccess({ action: 'create', result, values });
 
 
 * footer 上边距 16px，左右分布，按钮间距 8px；
+* 表单横向布局，标签列固定 `120px`，控件列 `flex: 1`；
+* CSS 必须写成扁平 class 选择器，禁止 `&__x` 嵌套；Lightning CSS 会把 `&__body` 编译成错误的 `__body.class`；
 
 * dirty 圆点 6px，橙色；
 

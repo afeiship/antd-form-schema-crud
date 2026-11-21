@@ -93,7 +93,9 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
   const available = showForm && !loading && !loadError;
 
   const {
-    layout = 'vertical',
+    layout = 'horizontal',
+    labelCol = { flex: '120px' },
+    wrapperCol = { flex: 1 },
     onValuesChange: userOnValuesChange,
     ...restFormProps
   } = resolvedFormProps;
@@ -124,15 +126,11 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
   }, [mode, record, setMode, clearActionError]);
 
   const canCancel = resolvedActions?.cancel !== false && (mode === 'edit' || Boolean(onBack));
-  const showBack = canCancel && (mode !== 'view' || Boolean(onBack));
   const subject = resolvedTitle === false ? null : (resolvedTitle ?? '记录');
   const titleNode = subject ? (
     <SchemaCardTitle mode={mode} subject={subject} dirty={dirty} />
   ) : undefined;
-  const extraNode =
-    extra || showBack ? (
-      <SchemaCardExtra extra={extra} showBack={showBack} onBack={handleCancel} />
-    ) : undefined;
+  const extraNode = extra ? <SchemaCardExtra extra={extra} /> : undefined;
 
   const footerNode = (
     <footer className={`${CLASS_NAME}__footer`}>
@@ -183,6 +181,8 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
             <SchemaForm
               {...restFormProps}
               layout={layout}
+              labelCol={labelCol}
+              wrapperCol={wrapperCol}
               key={formKey}
               meta={resolvedSchema}
               onFinish={handleFinish}
