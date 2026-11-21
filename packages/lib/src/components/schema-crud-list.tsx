@@ -99,6 +99,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
         {showCreate ? (
           <Button
             {...createAction?.props}
+            size={createAction?.props?.size ?? 'small'}
             type={createAction?.props?.type ?? 'primary'}
             icon={createAction?.props?.icon ?? <PlusOutlined />}
             onClick={onCreate}
@@ -109,6 +110,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
         {showRefresh ? (
           <Button
             {...refreshAction?.props}
+            size={refreshAction?.props?.size ?? 'small'}
             icon={refreshAction?.props?.icon ?? <ReloadOutlined />}
             loading={refreshAction?.props?.loading ?? loading}
             onClick={reload}

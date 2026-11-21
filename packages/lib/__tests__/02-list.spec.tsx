@@ -49,8 +49,10 @@ describe('list basics', () => {
     expect(screen.getByText('启用')).toBeInTheDocument();
     expect(screen.queryByText('隐藏')).not.toBeInTheDocument();
     expect(screen.queryByText('条件')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /新\s*建/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /刷\s*新/ })).toBeInTheDocument();
+    const createButton = screen.getByRole('button', { name: /新\s*建/ });
+    const refreshButton = screen.getByRole('button', { name: /刷\s*新/ });
+    expect(createButton).toHaveClass('ant-btn-sm');
+    expect(refreshButton).toHaveClass('ant-btn-sm');
   });
 
   it('supports explicit columns and presets, with explicit props winning', async () => {
