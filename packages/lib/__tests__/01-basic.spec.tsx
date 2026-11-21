@@ -85,7 +85,13 @@ describe('project defaults', () => {
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     expect(await screen.findByLabelText('姓名')).toBeInTheDocument();
     expect(document.querySelector('.ant-form-horizontal')).toBeInTheDocument();
-    expect(document.querySelector('.ant-form-item-label')).toHaveStyle({ flex: '0 0 120px' });
+    expect(document.querySelector('.ant-form-item-label')).toHaveStyle({ flex: '0 0 100px' });
+    expect(document.querySelector('.ant-form-item-control')).toHaveStyle({
+      flexGrow: '1',
+      flexShrink: '1',
+      flexBasis: '0px',
+      minWidth: '0px'
+    });
   });
 
   it('lets instance props override global defaults', () => {

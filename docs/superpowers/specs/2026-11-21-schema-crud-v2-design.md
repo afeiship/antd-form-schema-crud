@@ -49,7 +49,7 @@ v1 已经能完成创建、编辑、预览、删除，但页面接入成本偏�
 
 * 底部按钮固定在表单下方：保存、返回；保存按钮在编辑态默认禁用，直到表单发生变化。
 
-* 表单默认 `layout="horizontal"`，标签固定 `120px`，控件占满剩余宽度。
+* 表单默认 `layout="horizontal"`，标签固定 `100px`，控件占满剩余宽度。
 
 ### 不照搬的 API
 
@@ -198,7 +198,7 @@ export interface SchemaCrudFormProps<TRecord = CrudRecord> {
   /** 默认 true；false 时删除不弹确认。 */
   confirmDelete?: boolean;
 
-  /** 默认 layout: 'horizontal'，labelCol flex 120px，wrapperCol flex 1。 */
+  /** 默认 layout: 'horizontal'，labelCol flex 100px，wrapperCol style: flexGrow 1 + flexShrink 1 + flexBasis 0 + minWidth 0。 */
   formProps?: CrudFormProps;
   /** 仅 mode="view" 生效：按数组顺序展示这些字段；创建、编辑永远使用完整 schema。 */
   viewFields?: readonly string[];
@@ -525,7 +525,7 @@ onSuccess({ action: 'create', result, values });
 
 * footer 是独立工具栏：上边框、浅灰背景、12px 24px 内边距，负外边距贴合 Card 底部；
 * 所有操作同一组靠右排列，删除放在组内最前；
-* 表单横向布局，标签列固定 `120px`，控件列 `flex: 1`；
+* 表单横向布局，标签列固定 `100px`，控件列 `flex: 1`；
 * CSS 必须写成扁平 class 选择器，禁止 `&__x` 嵌套；Lightning CSS 会把 `&__body` 编译成错误的 `__body.class`；
 
 * dirty 圆点 6px，橙色；

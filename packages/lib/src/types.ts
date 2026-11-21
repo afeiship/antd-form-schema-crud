@@ -144,7 +144,7 @@ export interface SchemaCrudFormProps<TRecord = CrudRecord> {
   /** Scope used by useCrudFormActions; falls back to resource when omitted. */
   actionScope?: string;
 
-  /** Defaults to horizontal layout with a 120px label column. */
+  /** Defaults to horizontal layout with a 100px label column and a shrinkable control column. */
   formProps?: CrudFormProps;
   /**
    * Field keys shown in view mode, in this order. Create/edit keep the full schema.

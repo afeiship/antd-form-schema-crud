@@ -45,8 +45,8 @@ export function useSchemaCrudFormState<TRecord extends CrudRecord = CrudRecord>(
 
   const {
     layout = 'horizontal',
-    labelCol = { flex: '120px' },
-    wrapperCol = { flex: 1 },
+    labelCol = { flex: '100px' },
+    wrapperCol = { style: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0 } },
     onValuesChange: userOnValuesChange,
     ...restFormProps
   } = resolvedFormProps;

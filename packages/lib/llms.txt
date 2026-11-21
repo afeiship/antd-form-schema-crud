@@ -77,7 +77,7 @@ form.submit(); form.reload(); form.edit(); form.cancel(); await form.remove();
 - `remove` skips Popconfirm and returns a Promise; callers own confirmation. `submit` returns void; results arrive through onSuccess / onError.
 - All actions reuse the built-in button handlers and guards, including router navigation, pagination rollback and `mode="form"` reload behavior.
 
-Form defaults: `layout="horizontal"`, `labelCol={{ flex: '120px' }}`, `wrapperCol={{ flex: 1 }}`. Override through `formProps`. The title has an icon-only back; footer carries the text actions. `Card.extra` is caller-owned content.
+Form defaults: `layout="horizontal"`, `labelCol={{ flex: '100px' }}`, `wrapperCol={{ style: { flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 0 } }}`. Override through `formProps`. The title has an icon-only back; footer carries the text actions. `Card.extra` is caller-owned content.
 
 ## Field selection
 
