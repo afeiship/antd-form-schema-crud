@@ -3,6 +3,7 @@ import type { Key, ReactNode } from 'react';
 import { Button, Popconfirm, Space } from 'antd';
 import type { TableProps } from 'antd';
 import type { FormSchema } from '@jswork/antd-form-schema';
+import { CLASS_NAME } from '../constants';
 import type { CrudRecord, ListPresetField, ListPresets } from '../types';
 import { getOptionLabel, getRecordKey, resolveListPresets } from '../utils/list';
 
@@ -101,13 +102,14 @@ export function useCrudColumns<TRecord extends CrudRecord>({
       {
         key: '__schema_crud_actions',
         title: '操作',
-        width: canEdit && canDelete ? 112 : 96,
+        className: `${CLASS_NAME}__actions`,
+        width: canEdit && canDelete ? 92 : 76,
         render: (_: unknown, record: TRecord) => {
           const recordKey = getRecordKey(record, rowKey);
           const isDeleting = deletingKey !== null && deletingKey === recordKey;
 
           return (
-            <Space size="small">
+            <Space size={0}>
               {canEdit ? (
                 <Button type="link" size="small" onClick={() => onEdit?.(record)}>
                   编辑

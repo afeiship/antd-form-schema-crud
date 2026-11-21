@@ -27,6 +27,14 @@
   margin-left: auto;
 }
 
+.antd-form-schema-crud__actions .ant-btn-link {
+  padding-inline: 4px;
+}
+
+.antd-form-schema-crud__actions .ant-space {
+  gap: 0 !important;
+}
+
 .antd-form-schema-crud--list .ant-table-wrapper {
   min-width: 0;
 }
