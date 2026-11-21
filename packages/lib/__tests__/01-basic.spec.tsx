@@ -99,6 +99,13 @@ describe('project defaults', () => {
 });
 
 describe('automatic mode', () => {
+  it('renders without a Card header when title is false', () => {
+    const api = makeApi();
+    render(<SchemaCrud schema={schema} api={api} title={false} />);
+
+    expect(document.querySelector('.ant-card-head')).not.toBeInTheDocument();
+  });
+
   it('renders create without id and never calls show', () => {
     const api = makeApi();
     render(<SchemaCrud schema={schema} api={api} title="文章" />);
