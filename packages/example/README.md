@@ -26,9 +26,7 @@ VITE_API_TOKEN=your-token
 | `/posts/:id`       | 详情                | `SchemaCrudForm`    |
 | `/posts/:id/edit`  | 编辑                | `SchemaCrudForm`    |
 
-`/` 重定向到 `/posts`。示例用 `react-router-dom` 的 `BrowserRouter + Routes`；组件本身不依赖 Router。
-
-分页写进查询参数：`/posts?page=2&size=20`。刷新、前进后退都会保留页码；第 1 页和默认 `size=10` 不写进 URL。
+`/` 重定向到 `/posts`。示例用 `react-router-dom` 的 `BrowserRouter + Routes`；`SchemaCrudList` 默认把分页同步到路由查询参数：`/posts?page=2&size=20`。刷新、前进后退都会保留页码；示例传 `keepDefaultParams={false}`，第 1 页和默认 `size=10` 不写进 URL。
 
 ## 接口约定
 

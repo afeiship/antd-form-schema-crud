@@ -1,40 +1,11 @@
-import { App as AntdApp } from 'antd';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { SchemaCrudList, errorMessage } from '@jswork/antd-form-schema-crud';
-import type { CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
+import { useNavigate } from 'react-router-dom';
+import { SchemaCrudList } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
 import { PageHeader } from './components/page-header';
 import { postPageConfig } from './config';
 
-const DEFAULT_PAGE_SIZE = 10;
-
-function readPositive(value: string | null, fallback: number) {
-  const parsed = Number(value);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-}
-
 export function PostsListPage() {
   const navigate = useNavigate();
-  const { search } = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { message } = AntdApp.useApp();
-  const page = readPositive(searchParams.get('page'), 1);
-  const pageSize = readPositive(searchParams.get('size'), DEFAULT_PAGE_SIZE);
-
-  const handlePageChange = (nextPage: number, nextPageSize: number) => {
-    const next = new URLSearchParams(searchParams);
-    if (nextPage <= 1) next.delete('page');
-    else next.set('page', String(nextPage));
-
-    if (nextPageSize === DEFAULT_PAGE_SIZE) next.delete('size');
-    else next.set('size', String(nextPageSize));
-
-    setSearchParams(next);
-  };
-
-  const handleSuccess = (event: CrudSuccessEvent) => {
-    if (event.action === 'delete') message.success('删除成功');
-  };
 
   return (
     <div className="min-h-screen bg-slate-100 p-6">
@@ -50,13 +21,8 @@ export function PostsListPage() {
           fields={postPageConfig.list.fields}
           presets={postPageConfig.list.presets}
           title={postPageConfig.title}
-          page={page}
-          pageSize={pageSize}
-          onPageChange={handlePageChange}
-          onCreate={() => navigate(`/posts/new${search}`)}
-          onEdit={(record) => navigate(`/posts/${record.id}/edit${search}`)}
-          onSuccess={handleSuccess}
-          onError={(error) => message.error(errorMessage(error, '操作失败，请重试。'))}
+          keepDefaultParams={false}
+          onCreate={() => navigate('/posts/new')}
         />
       </div>
     </div>

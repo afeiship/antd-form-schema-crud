@@ -133,6 +133,32 @@ export const postPageConfig = {
 - 成功回调统一为 `onSuccess(event)`，按 `event.action` 区分 `create / update / delete`。
 - 需要受控模式时传 `mode`，并通过 `onModeChange` 同步。
 
+## Router 分页
+
+`SchemaCrudList` 默认从路由查询参数读取并写回分页，不需要额外组件或子入口：
+
+```tsx
+import { SchemaCrudList } from '@jswork/antd-form-schema-crud';
+
+<SchemaCrudList
+  resource="posts"
+  schema={postSchema}
+  title="文章"
+  onCreate={() => navigate('/posts/new')}
+  onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
+/>
+```
+
+- 默认读写 `?page=1&size=10`，翻页和切换每页数量会自动更新 URL。
+- URL 参数名跟随 `configureSchemaCrudList({ keys: { page, size } })` 的全局配置。
+- 业务不再需要手写 `handlePageChange`，也不需要自己读取 `useSearchParams`。
+- `keepDefaultParams` 默认 `true`，即使等于默认值也保留在 URL 中；传 `false` 时默认值会从 URL 移除。
+- 需要额外处理时仍可传 `onPageChange`，它在 URL 更新后触发。
+- 同时传 `page` 或 `pageSize` 视为受控分页，此时不读写 URL，回到纯组件状态。
+- 不在 Router 上下文中时自动退回组件内部分页，单元测试和无路由页面仍可直接使用。
+- 在 Router 上下文中，新建默认导航到 `${pathname}/add${search}`，编辑默认导航到 `${pathname}/${rowKey}/edit${search}`；传入 `onCreate` / `onEdit` 即完全覆盖。
+- 删除成功默认提示“删除成功”，请求失败默认提示“操作失败，请重试。”；`onSuccess` / `onError` 可覆盖。
+
 ## Column presets
 
 ```ts

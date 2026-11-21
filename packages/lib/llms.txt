@@ -106,3 +106,5 @@ List does not read these form defaults.
 ## Style
 
 import '@jswork/antd-form-schema-crud/style.css'
+
+- `SchemaCrudList` syncs page/size with the router query by default (`?page=1&size=10`), following the global list page/size keys. It supports `keepDefaultParams` and `onPageChange`; passing `page` or `pageSize` makes pagination controlled and disables URL syncing. Outside a router it falls back to internal pagination. In a router it also defaults onCreate to `${pathname}/add${search}`, onEdit to `${pathname}/${rowKey}/edit${search}`, delete success to a toast, and error to an error toast; each handler can be overridden.

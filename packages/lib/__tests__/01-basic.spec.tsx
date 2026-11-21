@@ -65,7 +65,7 @@ describe('card size', () => {
 describe('exports', () => {
   it('exposes a named and a default export with a version', () => {
     expect(NamedSchemaCrudForm).toBe(SchemaCrudForm);
-    expect(SchemaCrudForm.version).toBe('2.0.0');
+    expect(SchemaCrudForm.version).toBe('1.0.0');
   });
 });
 

@@ -20,6 +20,7 @@ export default defineConfig({
     '@jswork/antd-form-schema',
     'classnames',
     'fast-deep-equal',
+    'react-router-dom',
   ],
 
   // react

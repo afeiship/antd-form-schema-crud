@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Alert, Button, Card, Space, Table } from 'antd';
+import { Alert, Button, Card, Space, Table, message } from 'antd';
 import type { TableProps } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -7,13 +7,15 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import cx from 'classnames';
+import { useInRouterContext, useLocation, useNavigate } from 'react-router-dom';
 import { checkListRequirement, errorMessage, resolveApi } from '../api';
 import { getSchemaCrudCardSize, getSchemaCrudListKeys } from '../defaults';
+import { useCrudPageParams } from '../hooks/use-crud-page-params';
 import { CLASS_NAME, CLASS_NAME_LIST } from '../constants';
 import { useCrudColumns } from '../hooks/use-crud-columns';
 import { useCrudList } from '../hooks/use-crud-list';
 import { useLatest } from '../hooks/use-latest';
-import type { CrudRecord, SchemaCrudListProps } from '../types';
+import type { CrudRecord, CrudSuccessEvent, SchemaCrudListProps } from '../types';
 import { alertTitleProps } from '../utils/antd';
 import { selectSchemaFields } from '../utils/schema';
 
@@ -198,7 +200,63 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
   );
 }
 
-export const SchemaCrudList = Object.assign(SchemaCrudListRender, {
+function SchemaCrudListRoute<TRecord extends CrudRecord = CrudRecord>(
+  props: SchemaCrudListProps<TRecord>
+) {
+  const listKeys = getSchemaCrudListKeys();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const route = useCrudPageParams({
+    pageKey: listKeys.page,
+    sizeKey: listKeys.size,
+    defaultPage: props.page ?? 1,
+    defaultPageSize: props.pageSize ?? 10,
+    keepDefaultParams: props.keepDefaultParams,
+    onPageChange: props.onPageChange,
+  });
+
+  const basePath = location.pathname.replace(/\/+$/, '') || '/';
+  const search = location.search;
+  const rowKey = props.rowKey ?? ('id' as keyof TRecord);
+  const recordId = (record: TRecord) =>
+    typeof rowKey === 'function' ? rowKey(record) : record[rowKey];
+
+  return (
+    <SchemaCrudListRender<TRecord>
+      {...props}
+      page={route.page}
+      pageSize={route.pageSize}
+      onPageChange={route.onPageChange as SchemaCrudListProps<TRecord>['onPageChange']}
+      onCreate={props.onCreate ?? (() => navigate(`${basePath}/add${search}`))}
+      onEdit={props.onEdit ?? ((record) => navigate(`${basePath}/${recordId(record)}/edit${search}`))}
+      onSuccess={
+        props.onSuccess ??
+        ((event: CrudSuccessEvent) => {
+          if (event.action === 'delete') message.success('删除成功');
+        })
+      }
+      onError={
+        props.onError ??
+        ((error) => message.error(errorMessage(error, '操作失败，请重试。')))
+      }
+    />
+  );
+}
+
+/** Uses the router query by default; controlled page / pageSize props take over. */
+function SchemaCrudListWithRouter<TRecord extends CrudRecord = CrudRecord>(
+  props: SchemaCrudListProps<TRecord>
+) {
+  const inRouter = useInRouterContext();
+  const controlled = props.page !== undefined || props.pageSize !== undefined;
+  return inRouter && !controlled ? (
+    <SchemaCrudListRoute<TRecord> {...props} />
+  ) : (
+    <SchemaCrudListRender<TRecord> {...props} />
+  );
+}
+
+export const SchemaCrudList = Object.assign(SchemaCrudListWithRouter, {
   displayName: 'SchemaCrudList',
   version: __VERSION__,
 });

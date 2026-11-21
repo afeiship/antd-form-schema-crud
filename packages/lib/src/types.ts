@@ -153,9 +153,11 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
 
   /** Business filters, sent with page / size. */
   params?: Record<string, any>;
-  /** Controlled current page. Use with `onPageChange` to sync route state. */
+  /** Controlled current page. Passing page or pageSize disables URL syncing. */
   page?: number;
   pageSize?: number;
+  /** Keep page / size in the URL even when they equal the defaults. Defaults to true. */
+  keepDefaultParams?: boolean;
 
   actions?: ListActions;
   confirmDelete?: boolean;
@@ -164,12 +166,15 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
     'columns' | 'dataSource' | 'pagination' | 'rowKey' | 'loading'
   >;
 
+  /** Router context defaults to `${pathname}/add${search}`. */
   onCreate?: () => void;
+  /** Router context defaults to `${pathname}/${record[rowKey]}/edit${search}`. */
   onEdit?: (record: TRecord) => void;
   /** Called whenever the page or page size changes, including params reset and delete rollback. */
   onPageChange?: (page: number, pageSize: number) => void;
-  /** Row delete success; the component has already refreshed the list. */
+  /** Row delete success; router context defaults to a “删除成功” toast. */
   onSuccess?: (event: CrudSuccessEvent) => void;
+  /** Router context defaults to an “操作失败，请重试。” toast. */
   onError?: (error: unknown, action: CrudAction) => void;
   /** List page back. */
   onBack?: () => void;

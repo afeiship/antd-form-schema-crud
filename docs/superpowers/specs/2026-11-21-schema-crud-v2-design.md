@@ -1,5 +1,12 @@
 # SchemaCrudForm v2：参考 UI 与简化 API
 
+## Router 分页
+
+- `SchemaCrudList` 默认带上路由分页，不新增独立组件和子入口。
+- 默认读写 `page` / `size`，参数名跟随列表全局配置；`keepDefaultParams` 默认保留默认值。
+- 传 `page` 或 `pageSize` 时视为受控分页，不读写 URL；无 Router 上下文时退回内部分页。
+- `react-router-dom` 作为必需 peer 依赖。
+
 日期：2026-11-21
 
 状态：已实现
