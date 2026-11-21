@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Space } from 'antd';
+import { Button, Space } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { CLASS_NAME } from '../constants';
 import type { CrudMode } from '../types';
 
@@ -7,10 +8,12 @@ interface SchemaCardTitleProps {
   mode: CrudMode;
   subject: ReactNode;
   dirty: boolean;
+  showBack: boolean;
+  onBack?: () => void;
 }
 
 /** Card title: 新建 X / X详情 / 编辑 X, plus the unsaved dot. */
-export function SchemaCardTitle({ mode, subject, dirty }: SchemaCardTitleProps) {
+export function SchemaCardTitle({ mode, subject, dirty, showBack, onBack }: SchemaCardTitleProps) {
   if (!subject) return null;
 
   const title =
@@ -25,6 +28,16 @@ export function SchemaCardTitle({ mode, subject, dirty }: SchemaCardTitleProps) 
 
   return (
     <Space size={6}>
+      {showBack ? (
+        <Button
+          className={`${CLASS_NAME}__back`}
+          type="text"
+          size="small"
+          icon={<ArrowLeftOutlined />}
+          aria-label="返回"
+          onClick={onBack}
+        />
+      ) : null}
       <span>{title}</span>
       {dirty ? <span className={`${CLASS_NAME}__dirty`} aria-label="有未保存修改" /> : null}
     </Space>

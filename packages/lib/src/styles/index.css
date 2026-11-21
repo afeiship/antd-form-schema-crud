@@ -39,6 +39,11 @@
   min-width: 0;
 }
 
+.antd-form-schema-crud__back {
+  margin-inline: -4px 0;
+  padding-inline: 4px;
+}
+
 .antd-form-schema-crud__dirty {
   display: inline-block;
   width: 6px;

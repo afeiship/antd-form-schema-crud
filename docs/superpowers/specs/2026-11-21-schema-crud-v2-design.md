@@ -14,7 +14,7 @@ v1 已经能完成创建、编辑、预览、删除，但页面接入成本偏�
 
 
 
-1. **UI 参考&#x20;**`react-ant-resource-form`：用 `Card` 作为统一壳，标题栏带未保存标记，返回统一放在底部，表单放进 `Spin`，操作按钮固定在底部。
+1. **UI 参考&#x20;**`react-ant-resource-form`：用 `Card` 作为统一壳，标题栏左侧有图标返回和未保存标记，底部工具栏保留取消/返回，表单放进 `Spin`，操作按钮固定在底部。
 
 2. **API 收敛**：只保留资源、数据、生命周期三类入口，把能从 schema 推导的配置全部收回 schema，把三个成功回调合并成一个 `onSuccess`，把模式切换收进组件内部，同时保留受控模式作为逃生口。
 
@@ -34,7 +34,7 @@ v1 已经能完成创建、编辑、预览、删除，但页面接入成本偏�
 
 * 标题自动区分新建 / 编辑，编辑态有橙色未保存标记。
 
-* 返回只放在底部，标题栏不再重复放返回按钮。
+* 标题左侧提供图标返回；底部工具栏保留取消/返回文本按钮。
 
 * 内容区统一包 `Spin`，加载时保留卡片结构，减少布局跳动。
 
@@ -324,6 +324,14 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 
 ```
 <span className="antd-form-schema-crud__dirty" aria-label="有未保存修改" />
+```
+
+### 标题左侧
+
+`onBack` 存在且 `actions.cancel !== false` 时，标题最左侧渲染一个 `type="text"` 的图标返回按钮。它只承担导航，不占按钮文字：
+
+```
+<Button type="text" size="small" icon={<ArrowLeftOutlined />} aria-label="返回" />
 ```
 
 ### 右上角

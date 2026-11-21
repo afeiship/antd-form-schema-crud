@@ -126,9 +126,16 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
   }, [mode, record, setMode, clearActionError]);
 
   const canCancel = resolvedActions?.cancel !== false && (mode === 'edit' || Boolean(onBack));
+  const showTitleBack = Boolean(onBack) && resolvedActions?.cancel !== false;
   const subject = resolvedTitle === false ? null : (resolvedTitle ?? '记录');
   const titleNode = subject ? (
-    <SchemaCardTitle mode={mode} subject={subject} dirty={dirty} />
+    <SchemaCardTitle
+      mode={mode}
+      subject={subject}
+      dirty={dirty}
+      showBack={showTitleBack}
+      onBack={handleCancel}
+    />
   ) : undefined;
   const extraNode = extra ? <SchemaCardExtra extra={extra} /> : undefined;
 

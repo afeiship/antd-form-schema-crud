@@ -67,7 +67,6 @@ describe('project defaults', () => {
     expect(await screen.findByLabelText('姓名')).toBeInTheDocument();
     expect(document.querySelector('.ant-form-horizontal')).toBeInTheDocument();
     expect(document.querySelector('.ant-form-item-label')).toHaveStyle({ flex: '0 0 120px' });
-    expect(document.querySelector('.ant-card-head button')).toBeNull();
   });
 
   it('lets instance props override global defaults', () => {
@@ -531,7 +530,7 @@ describe('actions', () => {
       />
     );
     expect(screen.getByText('帮助')).toBeInTheDocument();
-    expect(document.querySelector('.ant-card-head button')).toBeNull();
+    expect(document.querySelector('.ant-card-head button')?.getAttribute('aria-label')).toBe('返回');
     await screen.findByText('Ada');
     expect(screen.getAllByRole('button', { name: /返\s*回/ }).length).toBeGreaterThan(0);
   });
