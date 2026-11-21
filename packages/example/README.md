@@ -67,7 +67,7 @@ VITE_API_TOKEN=your-token
 
 - 新建页 `mode="create"`，成功后进入详情。
 - 详情页 `mode="view"`，点击编辑通过 `onModeChange` 跳到编辑页。
-- 编辑页 `mode="edit"`，取消编辑通过 `onModeChange` 回到详情。
+- 编辑页 `mode="edit"`，取消编辑通过 `onModeChange` 回到列表。
 - 创建默认值和提交前 trim 都写在 `postSchema`：
 
 ```ts

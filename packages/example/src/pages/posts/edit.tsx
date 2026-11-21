@@ -1,7 +1,7 @@
 import { App as AntdApp } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SchemaCrudForm, errorMessage } from '@jswork/antd-form-schema-crud';
-import type { CrudMode, CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
+import type { CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
 import { PageHeader } from './components/page-header';
 import { postSchema } from './schema';
@@ -16,8 +16,8 @@ export function PostsEditPage() {
     navigate(`/posts/${id}`);
   };
 
-  const handleModeChange = (mode: CrudMode) => {
-    if (mode === 'view') navigate(`/posts/${id}`);
+  const handleModeChange = () => {
+    navigate('/posts');
   };
 
   return (
