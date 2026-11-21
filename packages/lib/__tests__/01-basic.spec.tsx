@@ -183,6 +183,34 @@ describe('edit', () => {
     expect(screen.getByText('记录详情')).toBeInTheDocument();
   });
 
+  it('does not treat an onSuccess rejection as an update failure', async () => {
+    const api = makeApi();
+    api.show
+      .mockResolvedValueOnce({ id: 7, name: 'Ada', status: 'active' })
+      .mockResolvedValueOnce({ id: 7, name: 'Grace', status: 'active' });
+    const onSuccess = vi.fn(async () => {
+      throw new Error('refresh failed');
+    });
+    const onError = vi.fn();
+    render(<SchemaCrud schema={schema} api={api} id={7} onSuccess={onSuccess} onError={onError} />);
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+    fireEvent.change(await screen.findByLabelText('姓名'), { target: { value: 'Grace' } });
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    await waitFor(() =>
+      expect(onSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'update',
+        })
+      )
+    );
+    await waitFor(() => expect(api.show).toHaveBeenCalledTimes(2));
+    expect(screen.getByText('记录详情')).toBeInTheDocument();
+    expect(onError).toHaveBeenCalledWith(expect.any(Error), 'update');
+  });
+
   it('keeps save disabled until the form changes', async () => {
     const api = makeApi();
     render(<SchemaCrud schema={schema} api={api} id={7} />);

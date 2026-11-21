@@ -11,7 +11,14 @@ import { useCrudMode } from '../hooks/use-crud-mode';
 import { useDirtyState } from '../hooks/use-dirty-state';
 import { useLatest } from '../hooks/use-latest';
 import { useRecordLoader } from '../hooks/use-record-loader';
-import type { CrudAction, CrudId, CrudRecord, CrudValues, SchemaCrudProps } from '../types';
+import type {
+  CrudAction,
+  CrudId,
+  CrudRecord,
+  CrudSuccessEvent,
+  CrudValues,
+  SchemaCrudProps,
+} from '../types';
 import { alertTitleProps } from '../utils/antd';
 import { SchemaFooter } from './schema-footer';
 
@@ -133,6 +140,18 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
     [checkDirty, userOnValuesChange]
   );
 
+  const emitSuccess = useCallback(
+    async (event: CrudSuccessEvent) => {
+      try {
+        await onSuccess?.(event);
+      } catch (error) {
+        // The write already succeeded; report callback failures separately.
+        onError?.(error, event.action);
+      }
+    },
+    [onSuccess, onError]
+  );
+
   const handleFinish = useCallback(
     async (values: CrudValues) => {
       const action: CrudAction = mode === 'create' ? 'create' : 'update';
@@ -142,26 +161,32 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
       setActionError(null);
       submittingRef.current = true;
       setSubmitLoading(true);
+      let result: unknown;
       try {
         if (mode === 'create') {
-          const result = await resolvedApiRef.current.create?.(values);
-          onSuccess?.({ action: 'create', result, values });
+          result = await resolvedApiRef.current.create?.(values);
         } else {
           const payload = { ...values, id: id as CrudId };
-          const result = await resolvedApiRef.current.update?.(payload);
-          onSuccess?.({ action: 'update', result, values });
-          setMode('view');
-          setPendingReload(true);
+          result = await resolvedApiRef.current.update?.(payload);
         }
       } catch (error) {
         setActionError({ action, message: errorMessage(error) });
         onError?.(error, action);
+        return;
       } finally {
         submittingRef.current = false;
         setSubmitLoading(false);
       }
+
+      if (action === 'update') {
+        setMode('view');
+        setPendingReload(true);
+        await emitSuccess({ action: 'update', result, values });
+      } else {
+        await emitSuccess({ action: 'create', result, values });
+      }
     },
-    [mode, id, onSuccess, onError, resolvedApiRef, setMode]
+    [mode, id, emitSuccess, onError, resolvedApiRef, setMode]
   );
 
   const handleDelete = useCallback(async () => {
@@ -181,8 +206,8 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
     setDeleteLoading(true);
     try {
       const result = await destroy({ id });
-      onSuccess?.({ action: 'delete', result });
       setMode('create');
+      await emitSuccess({ action: 'delete', result });
     } catch (error) {
       setActionError({ action: 'delete', message: errorMessage(error, '删除失败，请重试。') });
       onError?.(error, 'delete');
@@ -190,7 +215,7 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
       deletingRef.current = false;
       setDeleteLoading(false);
     }
-  }, [id, onSuccess, onError, resolvedApiRef, setMode]);
+  }, [id, emitSuccess, onError, resolvedApiRef, setMode]);
 
   const handleCancel = useCallback(() => {
     if (mode === 'edit') {
