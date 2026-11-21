@@ -8,7 +8,7 @@ import {
 } from '@ant-design/icons';
 import cx from 'classnames';
 import { checkListRequirement, errorMessage, resolveApi } from '../api';
-import { getSchemaCrudListKeys } from '../defaults';
+import { getSchemaCrudCardSize, getSchemaCrudListKeys } from '../defaults';
 import { CLASS_NAME, CLASS_NAME_LIST } from '../constants';
 import { useCrudColumns } from '../hooks/use-crud-columns';
 import { useCrudList } from '../hooks/use-crud-list';
@@ -45,6 +45,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
   } = props;
 
   const listKeys = getSchemaCrudListKeys();
+  const cardSize = getSchemaCrudCardSize();
   const resolvedApi = useMemo(() => resolveApi<TRecord>(api, resource), [api, resource]);
   const effectiveSchema = useMemo(() => selectSchemaFields(schema, fields), [schema, fields]);
   const requirement = checkListRequirement(resolvedApi, resource);
@@ -141,6 +142,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
   return (
     <Card
       data-component={CLASS_NAME_LIST}
+      size={cardSize}
       className={cx(CLASS_NAME, `${CLASS_NAME}--list`, className)}
       title={titleNode}
       extra={extra}

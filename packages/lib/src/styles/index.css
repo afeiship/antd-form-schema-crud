@@ -18,6 +18,11 @@
   background: #fafafa;
 }
 
+.antd-form-schema-crud.ant-card-small .antd-form-schema-crud__footer {
+  margin: 20px -12px -12px;
+  padding: 12px;
+}
+
 .antd-form-schema-crud__footer-right {
   display: flex;
   align-items: center;

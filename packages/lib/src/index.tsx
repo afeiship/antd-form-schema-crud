@@ -6,12 +6,19 @@ export {
   configureSchemaCrudForm,
   getSchemaCrudFormDefaults,
   resetSchemaCrudFormDefaults,
+  configureSchemaCrud,
+  getSchemaCrudDefaults,
+  resetSchemaCrudDefaults,
   configureSchemaCrudList,
   getSchemaCrudListDefaults,
   getSchemaCrudListKeys,
   resetSchemaCrudListDefaults,
 } from './defaults';
-export type { SchemaCrudFormDefaults, SchemaCrudListDefaults } from './defaults';
+export type {
+  SchemaCrudDefaults,
+  SchemaCrudFormDefaults,
+  SchemaCrudListDefaults,
+} from './defaults';
 export type { ApiRequirement } from './api';
 export type {
   CrudMode,

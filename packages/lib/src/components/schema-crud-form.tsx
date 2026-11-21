@@ -4,7 +4,7 @@ import cx from 'classnames';
 import { SchemaForm } from '@jswork/antd-form-schema';
 import { checkRequirement, errorMessage, resolveApi } from '../api';
 import { CLASS_NAME } from '../constants';
-import { getSchemaCrudFormDefaults } from '../defaults';
+import { getSchemaCrudCardSize, getSchemaCrudFormDefaults } from '../defaults';
 import { useCrudActions } from '../hooks/use-crud-actions';
 import { useCrudForm } from '../hooks/use-crud-form';
 import { useCrudMode } from '../hooks/use-crud-mode';
@@ -55,6 +55,7 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
   const resolvedTitle = title === undefined ? projectDefaults.title : title;
 
   const resolvedApi = useMemo(() => resolveApi<TRecord>(api, resource), [api, resource]);
+  const cardSize = getSchemaCrudCardSize();
   const requirement = checkRequirement(mode, resolvedApi, resource, id);
   const blocked = requirement.missing.length > 0;
   const needsLoad = mode !== 'create';
@@ -190,6 +191,7 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
   return (
     <Card
       data-component={CLASS_NAME}
+      size={cardSize}
       className={cx(CLASS_NAME, className)}
       title={titleNode}
       extra={extraNode}

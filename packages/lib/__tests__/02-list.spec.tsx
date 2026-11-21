@@ -3,8 +3,10 @@ import '@testing-library/jest-dom';
 import type { FormSchema } from '@jswork/antd-form-schema';
 import {
   SchemaCrudList,
+  configureSchemaCrud,
   configureSchemaCrudList,
   getSchemaCrudListDefaults,
+  resetSchemaCrudDefaults,
   resetSchemaCrudListDefaults,
 } from '../src';
 import type { CrudListParams, CrudSuccessEvent } from '../src';
@@ -39,6 +41,7 @@ const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 afterEach(() => {
   resetSchemaCrudListDefaults();
+  resetSchemaCrudDefaults();
   vi.restoreAllMocks();
 });
 
@@ -60,6 +63,22 @@ describe('list basics', () => {
     resolve({ rows, total: rows.length });
     expect(await screen.findByText('Ada')).toBeInTheDocument();
     expect(container.querySelector('.ant-card-loading')).not.toBeInTheDocument();
+  });
+
+  it('uses the same shared small card setting as the form', async () => {
+    const api = makeApi();
+    const first = render(<SchemaCrudList schema={schema} api={api} />);
+
+    await screen.findByText('Ada');
+    expect(first.container.querySelector('.antd-form-schema-crud')).toHaveClass('ant-card-small');
+    first.unmount();
+
+    configureSchemaCrud({ cardSize: 'middle' });
+    const second = render(<SchemaCrudList schema={schema} api={api} />);
+    await screen.findByText('Ada');
+    expect(second.container.querySelector('.antd-form-schema-crud')).not.toHaveClass(
+      'ant-card-small'
+    );
   });
 
   it('requests page 1 and renders schema-derived columns', async () => {

@@ -1,4 +1,35 @@
+import type { CardProps } from 'antd';
 import type { CrudActions, CrudFormProps, CrudListKeys } from './types';
+
+/** UI defaults shared by SchemaCrudForm and SchemaCrudList. */
+export interface SchemaCrudDefaults {
+  /** Card density for both the form and the list; defaults to `small`. */
+  cardSize?: CardProps['size'];
+}
+
+let globalSchemaCrudDefaults: SchemaCrudDefaults = {};
+
+/** Configure shared UI defaults once for the whole project. */
+export function configureSchemaCrud(defaults: SchemaCrudDefaults): void {
+  if (defaults.cardSize !== undefined) {
+    globalSchemaCrudDefaults = { ...globalSchemaCrudDefaults, cardSize: defaults.cardSize };
+  }
+}
+
+/** Return shared UI defaults as a copy. */
+export function getSchemaCrudDefaults(): SchemaCrudDefaults {
+  return { ...globalSchemaCrudDefaults };
+}
+
+/** Effective Card size; both components read this one value. */
+export function getSchemaCrudCardSize(): NonNullable<CardProps['size']> {
+  return globalSchemaCrudDefaults.cardSize ?? 'small';
+}
+
+/** Remove shared UI defaults. Primarily for tests and app teardown. */
+export function resetSchemaCrudDefaults(): void {
+  globalSchemaCrudDefaults = {};
+}
 import type { ReactNode } from 'react';
 
 /**

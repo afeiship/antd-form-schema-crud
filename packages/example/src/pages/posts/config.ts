@@ -22,7 +22,7 @@ export const postPageConfig: PostPageConfig = {
   title: '文章',
   schema: postSchema,
   list: {
-    fields: ['title', 'subtitle', 'status'],
+    fields: ['title', 'subtitle'],
     presets: postListPresets,
   },
   detail: {

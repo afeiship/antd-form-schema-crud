@@ -153,6 +153,18 @@ export const postListPresets: ListPresets = {
 - `hidden: true` 只隐藏列表里的推导列，表单字段不受影响。
 - 操作列不受 `presets` 影响；复杂单元格继续用显式 `columns`。
 
+## Shared UI defaults
+
+表单卡片和列表卡片共用同一个 `cardSize`，默认 `small`。需要调整时只配置一次：
+
+```ts
+import { configureSchemaCrud } from '@jswork/antd-form-schema-crud';
+
+configureSchemaCrud({ cardSize: 'middle' });
+```
+
+`getSchemaCrudDefaults()` 返回当前共享默认值，`resetSchemaCrudDefaults()` 恢复默认。`small` 卡片的标题栏、内边距和底部工具栏会一起收紧。
+
 ## Project defaults
 
 `configureSchemaCrudForm` 只作用于 `SchemaCrudForm`，列表有独立的项目级配置。列表默认值：`pageSize=10`、`rowKey='id'`、`confirmDelete=true`、表格 `size='small'`。
@@ -202,6 +214,6 @@ configureSchemaCrudList({
 ## Exports
 
 - 组件：`SchemaCrudForm`、`AntdFormSchemaCrudForm`、`SchemaCrudList`
-- 全局配置：`configureSchemaCrudForm`、`getSchemaCrudFormDefaults`、`resetSchemaCrudFormDefaults`、`configureSchemaCrudList`、`getSchemaCrudListDefaults`、`resetSchemaCrudListDefaults`
+- 全局配置：`configureSchemaCrud`、`getSchemaCrudDefaults`、`resetSchemaCrudDefaults`、`configureSchemaCrudForm`、`getSchemaCrudFormDefaults`、`resetSchemaCrudFormDefaults`、`configureSchemaCrudList`、`getSchemaCrudListDefaults`、`resetSchemaCrudListDefaults`
 - 工具：`resolveApi`、`checkRequirement`、`checkListRequirement`、`errorMessage`、`getNxApi`
-- 类型：`SchemaCrudFormProps`、`SchemaCrudListProps`、`CrudApi`、`CrudListParams`、`CrudListResult`、`ListPresets`、`CrudSuccessEvent` 等
+- 类型：`SchemaCrudDefaults`、`SchemaCrudFormProps`、`SchemaCrudListProps`、`CrudApi`、`CrudListParams`、`CrudListResult`、`ListPresets`、`CrudSuccessEvent` 等

@@ -7,8 +7,10 @@ import '@testing-library/jest-dom';
 import type { FormSchema } from '@jswork/antd-form-schema';
 import SchemaCrudForm, {
   SchemaCrudForm as NamedSchemaCrudForm,
+  configureSchemaCrud,
   configureSchemaCrudForm,
   getSchemaCrudFormDefaults,
+  resetSchemaCrudDefaults,
   resetSchemaCrudFormDefaults,
 } from '../src';
 import { checkRequirement, errorMessage, resolveApi } from '../src';
@@ -40,6 +42,7 @@ const makeApi = () => ({
 
 afterEach(() => {
   resetSchemaCrudFormDefaults();
+  resetSchemaCrudDefaults();
   vi.restoreAllMocks();
   delete (globalThis as any).nx;
 });
