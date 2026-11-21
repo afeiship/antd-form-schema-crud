@@ -2,7 +2,7 @@
 
 日期：2026-11-21
 
-状态：已实现；组件命名已定，代码待同步为 `SchemaCrudForm`
+状态：已实现
 
 关系：在 `2026-11-21-schema-crud-design.md` 的 v1 实现上做一次 API 收敛；底层字段能力仍由 `@jswork/antd-form-schema` 提供。
 

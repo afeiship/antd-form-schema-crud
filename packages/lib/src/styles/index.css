@@ -33,6 +33,12 @@
     margin-left: auto;
   }
 
+  &--list {
+    .ant-table-wrapper {
+      min-width: 0;
+    }
+  }
+
   &__dirty {
     display: inline-block;
     width: 6px;

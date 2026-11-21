@@ -1,15 +1,15 @@
 /**
- * SchemaCrud v2 component tests, following
+ * SchemaCrudForm v2 component tests, following
  * docs/superpowers/specs/2026-11-21-schema-crud-v2-design.md.
  */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import type { FormSchema } from '@jswork/antd-form-schema';
-import SchemaCrud, {
-  SchemaCrud as NamedSchemaCrud,
-  configureSchemaCrud,
-  getSchemaCrudDefaults,
-  resetSchemaCrudDefaults,
+import SchemaCrudForm, {
+  SchemaCrudForm as NamedSchemaCrudForm,
+  configureSchemaCrudForm,
+  getSchemaCrudFormDefaults,
+  resetSchemaCrudFormDefaults,
 } from '../src';
 import { checkRequirement, errorMessage, resolveApi } from '../src';
 import type { CrudSuccessEvent } from '../src';
@@ -38,27 +38,27 @@ const makeApi = () => ({
 });
 
 afterEach(() => {
-  resetSchemaCrudDefaults();
+  resetSchemaCrudFormDefaults();
   vi.restoreAllMocks();
   delete (globalThis as any).nx;
 });
 
 describe('exports', () => {
   it('exposes a named and a default export with a version', () => {
-    expect(NamedSchemaCrud).toBe(SchemaCrud);
-    expect(SchemaCrud.version).toBe('2.0.0');
+    expect(NamedSchemaCrudForm).toBe(SchemaCrudForm);
+    expect(SchemaCrudForm.version).toBe('2.0.0');
   });
 });
 
 describe('project defaults', () => {
   it('applies title, action copy and form props defaults to instances', async () => {
     const api = makeApi();
-    configureSchemaCrud({
+    configureSchemaCrudForm({
       title: '用户',
       actions: { save: { text: '提交' }, delete: { text: '移除' } },
       formProps: { layout: 'horizontal' },
     });
-    render(<SchemaCrud schema={schema} api={api} id={7} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} />);
 
     expect(screen.getByText('用户详情')).toBeInTheDocument();
     await screen.findByText('Ada');
@@ -71,9 +71,9 @@ describe('project defaults', () => {
 
   it('lets instance props override global defaults', () => {
     const api = makeApi();
-    configureSchemaCrud({ title: '用户', confirmDelete: false });
+    configureSchemaCrudForm({ title: '用户', confirmDelete: false });
     render(
-      <SchemaCrud
+      <SchemaCrudForm
         schema={schema}
         api={api}
         title="文章"
@@ -87,28 +87,28 @@ describe('project defaults', () => {
   });
 
   it('returns a copy and resets project defaults', () => {
-    configureSchemaCrud({ title: '用户', actions: { save: { text: '提交' } } });
-    const snapshot = getSchemaCrudDefaults();
+    configureSchemaCrudForm({ title: '用户', actions: { save: { text: '提交' } } });
+    const snapshot = getSchemaCrudFormDefaults();
     expect(snapshot.title).toBe('用户');
     snapshot.actions!.save = { text: '被改掉' };
-    expect(getSchemaCrudDefaults().actions!.save).toEqual({ text: '提交' });
+    expect(getSchemaCrudFormDefaults().actions!.save).toEqual({ text: '提交' });
 
-    resetSchemaCrudDefaults();
-    expect(getSchemaCrudDefaults()).toEqual({});
+    resetSchemaCrudFormDefaults();
+    expect(getSchemaCrudFormDefaults()).toEqual({});
   });
 });
 
 describe('automatic mode', () => {
   it('renders without a Card header when title is false', () => {
     const api = makeApi();
-    render(<SchemaCrud schema={schema} api={api} title={false} />);
+    render(<SchemaCrudForm schema={schema} api={api} title={false} />);
 
     expect(document.querySelector('.ant-card-head')).not.toBeInTheDocument();
   });
 
   it('renders create without id and never calls show', () => {
     const api = makeApi();
-    render(<SchemaCrud schema={schema} api={api} title="文章" />);
+    render(<SchemaCrudForm schema={schema} api={api} title="文章" />);
 
     expect(screen.getByText('新建文章')).toBeInTheDocument();
     expect(api.show).not.toHaveBeenCalled();
@@ -117,7 +117,7 @@ describe('automatic mode', () => {
 
   it('renders view with id and loads the record', async () => {
     const api = makeApi();
-    render(<SchemaCrud schema={schema} api={api} id={7} title="文章" />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} title="文章" />);
 
     expect(screen.getByText('文章详情')).toBeInTheDocument();
     await waitFor(() => expect(api.show).toHaveBeenCalledWith({ id: 7 }));
@@ -127,7 +127,7 @@ describe('automatic mode', () => {
 
   it('switches view -> edit -> view internally', async () => {
     const api = makeApi();
-    render(<SchemaCrud schema={schema} api={api} id={7} title="文章" />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} title="文章" />);
 
     await screen.findByText('Ada');
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
@@ -143,13 +143,13 @@ describe('automatic mode', () => {
 
   it('re-derives mode when id changes', async () => {
     const api = makeApi();
-    const { rerender } = render(<SchemaCrud schema={schema} api={api} id={7} title="文章" />);
+    const { rerender } = render(<SchemaCrudForm schema={schema} api={api} id={7} title="文章" />);
 
     await screen.findByText('Ada');
-    rerender(<SchemaCrud schema={schema} api={api} title="文章" />);
+    rerender(<SchemaCrudForm schema={schema} api={api} title="文章" />);
     expect(screen.getByText('新建文章')).toBeInTheDocument();
 
-    rerender(<SchemaCrud schema={schema} api={api} id={8} title="文章" />);
+    rerender(<SchemaCrudForm schema={schema} api={api} id={8} title="文章" />);
     expect(screen.getByText('文章详情')).toBeInTheDocument();
     await screen.findByText('Ada');
   });
@@ -160,7 +160,7 @@ describe('controlled mode', () => {
     const api = makeApi();
     const onModeChange = vi.fn();
     render(
-      <SchemaCrud
+      <SchemaCrudForm
         schema={schema}
         api={api}
         id={7}
@@ -182,7 +182,7 @@ describe('create', () => {
   it('submits schema initial values and emits onSuccess', async () => {
     const api = makeApi();
     const onSuccess = vi.fn<(event: CrudSuccessEvent) => void>();
-    render(<SchemaCrud schema={schema} api={api} onSuccess={onSuccess} />);
+    render(<SchemaCrudForm schema={schema} api={api} onSuccess={onSuccess} />);
 
     fireEvent.change(screen.getByLabelText('姓名'), { target: { value: 'Ada' } });
     fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }));
@@ -206,7 +206,7 @@ describe('create', () => {
         source: 'crm',
       }),
     };
-    render(<SchemaCrud schema={normalizedSchema} api={api} />);
+    render(<SchemaCrudForm schema={normalizedSchema} api={api} />);
 
     fireEvent.change(screen.getByLabelText('姓名'), { target: { value: '  Ada  ' } });
     fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }));
@@ -223,7 +223,7 @@ describe('edit', () => {
       .mockResolvedValueOnce({ id: 7, name: 'Ada', status: 'active' })
       .mockResolvedValueOnce({ id: 7, name: 'Grace', status: 'active' });
     const onSuccess = vi.fn<(event: CrudSuccessEvent) => void>();
-    render(<SchemaCrud schema={schema} api={api} id={7} onSuccess={onSuccess} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} onSuccess={onSuccess} />);
 
     await screen.findByText('Ada');
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
@@ -253,7 +253,7 @@ describe('edit', () => {
       throw new Error('refresh failed');
     });
     const onError = vi.fn();
-    render(<SchemaCrud schema={schema} api={api} id={7} onSuccess={onSuccess} onError={onError} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} onSuccess={onSuccess} onError={onError} />);
 
     await screen.findByText('Ada');
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
@@ -274,7 +274,7 @@ describe('edit', () => {
 
   it('keeps save disabled until the form changes', async () => {
     const api = makeApi();
-    render(<SchemaCrud schema={schema} api={api} id={7} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} />);
 
     await screen.findByText('Ada');
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
@@ -291,7 +291,7 @@ describe('edit', () => {
 
   it('shows the dirty dot only after a change', async () => {
     const api = makeApi();
-    render(<SchemaCrud schema={schema} api={api} id={7} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} />);
 
     await screen.findByText('Ada');
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
@@ -307,7 +307,7 @@ describe('view', () => {
   it('does not mutate the passed schema, especially viewMode', async () => {
     const api = makeApi();
     const original = JSON.stringify(schema);
-    render(<SchemaCrud schema={schema} api={api} id={7} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} />);
     await screen.findByText('Ada');
     expect(schema.viewMode).toBeUndefined();
     expect(JSON.stringify(schema)).toBe(original);
@@ -317,6 +317,7 @@ describe('view', () => {
 describe('resource resolution', () => {
   it('resolves nx.$api from resource and api overrides per action', () => {
     const registry = {
+      users_index: vi.fn(),
       users_show: vi.fn(),
       users_create: vi.fn(),
       users_update: vi.fn(),
@@ -325,6 +326,7 @@ describe('resource resolution', () => {
     (globalThis as any).nx = { $api: registry };
 
     const resolved = resolveApi(undefined, 'users');
+    expect(resolved.index).toBe(registry.users_index);
     expect(resolved.show).toBe(registry.users_show);
     expect(resolved.create).toBe(registry.users_create);
     expect(resolved.update).toBe(registry.users_update);
@@ -336,6 +338,7 @@ describe('resource resolution', () => {
     expect(merged.create).toBe(registry.users_create);
 
     expect(resolveApi(undefined, undefined)).toEqual({
+      index: undefined,
       show: undefined,
       create: undefined,
       update: undefined,
@@ -346,7 +349,7 @@ describe('resource resolution', () => {
   it('works end to end through the component with resource', async () => {
     const users_create = vi.fn(async () => ({ id: 1 }));
     (globalThis as any).nx = { $api: { users_create } };
-    render(<SchemaCrud schema={schema} resource="users" />);
+    render(<SchemaCrudForm schema={schema} resource="users" />);
     fireEvent.change(screen.getByLabelText('姓名'), { target: { value: 'Ada' } });
     fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }));
     await waitFor(() => expect(users_create).toHaveBeenCalledTimes(1));
@@ -356,18 +359,18 @@ describe('resource resolution', () => {
 describe('requirement checks', () => {
   it('renders an error without firing requests when id is missing', () => {
     const api = makeApi();
-    render(<SchemaCrud mode="edit" schema={schema} api={api} />);
+    render(<SchemaCrudForm mode="edit" schema={schema} api={api} />);
     expect(screen.getByText(/缺少 id/)).toBeInTheDocument();
     expect(api.show).not.toHaveBeenCalled();
   });
 
   it('renders an error when the mode requires a missing api method', () => {
-    render(<SchemaCrud mode="view" schema={schema} api={{ create: vi.fn() }} id={1} />);
+    render(<SchemaCrudForm mode="view" schema={schema} api={{ create: vi.fn() }} id={1} />);
     expect(screen.getByText(/缺少 show 接口/)).toBeInTheDocument();
   });
 
   it('renders an error when neither resource nor api is provided', () => {
-    render(<SchemaCrud schema={schema} />);
+    render(<SchemaCrudForm schema={schema} />);
     expect(screen.getByText(/缺少 resource 或 api/)).toBeInTheDocument();
   });
 
@@ -387,7 +390,7 @@ describe('delete', () => {
       .mockResolvedValueOnce({ id: 7, name: 'Ada', status: 'active' })
       .mockResolvedValueOnce({ id: 7, name: 'Grace', status: 'active' });
     const onSuccess = vi.fn<(event: CrudSuccessEvent) => void>();
-    render(<SchemaCrud schema={schema} api={api} id={7} onSuccess={onSuccess} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} onSuccess={onSuccess} />);
 
     await screen.findByText('Ada');
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
@@ -404,7 +407,7 @@ describe('delete', () => {
 
   it('deletes immediately when confirmDelete is false', async () => {
     const api = makeApi();
-    render(<SchemaCrud schema={schema} api={api} id={7} confirmDelete={false} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} confirmDelete={false} />);
 
     await screen.findByText('Ada');
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
@@ -415,14 +418,14 @@ describe('delete', () => {
 
   it('hides delete via actions and when destroy is missing', async () => {
     const api = makeApi();
-    render(<SchemaCrud schema={schema} api={api} id={7} actions={{ delete: false }} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} actions={{ delete: false }} />);
     await screen.findByText('Ada');
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     await screen.findByLabelText('姓名');
     expect(screen.queryByRole('button', { name: /删\s*除/ })).not.toBeInTheDocument();
 
     const { destroy: _omit, ...withoutDestroy } = makeApi();
-    render(<SchemaCrud schema={schema} api={withoutDestroy} id={8} />);
+    render(<SchemaCrudForm schema={schema} api={withoutDestroy} id={8} />);
     await screen.findByText('Ada');
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     await screen.findByLabelText('姓名');
@@ -434,7 +437,7 @@ describe('loading and failure', () => {
   it('shows a retry alert when show fails and recovers on retry', async () => {
     const api = makeApi();
     api.show.mockRejectedValueOnce(new Error('boom'));
-    render(<SchemaCrud schema={schema} api={api} id={7} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} />);
 
     expect(await screen.findByText('boom')).toBeInTheDocument();
     expect(screen.queryByText('Ada')).not.toBeInTheDocument();
@@ -448,7 +451,7 @@ describe('loading and failure', () => {
     const api = makeApi();
     api.update.mockRejectedValueOnce(new Error('save failed'));
     const onError = vi.fn();
-    render(<SchemaCrud schema={schema} api={api} id={7} onError={onError} />);
+    render(<SchemaCrudForm schema={schema} api={api} id={7} onError={onError} />);
 
     await screen.findByText('Ada');
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
@@ -474,8 +477,8 @@ describe('loading and failure', () => {
       return Promise.resolve({ id, name: 'Fast', status: 'active' });
     });
 
-    const { rerender } = render(<SchemaCrud schema={schema} api={api} id={1} />);
-    rerender(<SchemaCrud schema={schema} api={api} id={2} />);
+    const { rerender } = render(<SchemaCrudForm schema={schema} api={api} id={1} />);
+    rerender(<SchemaCrudForm schema={schema} api={api} id={2} />);
     expect(await screen.findByText('Fast')).toBeInTheDocument();
 
     resolveSlow({ id: 1, name: 'Slow', status: 'active' });
@@ -489,7 +492,7 @@ describe('actions', () => {
   it('supports custom text and hiding buttons', () => {
     const api = makeApi();
     render(
-      <SchemaCrud
+      <SchemaCrudForm
         schema={schema}
         api={api}
         actions={{ save: { text: '马上创建' }, cancel: false }}
@@ -502,12 +505,12 @@ describe('actions', () => {
   it('calls onBack from create cancel and view back', async () => {
     const api = makeApi();
     const onBack = vi.fn();
-    const { rerender } = render(<SchemaCrud schema={schema} api={api} onBack={onBack} />);
+    const { rerender } = render(<SchemaCrudForm schema={schema} api={api} onBack={onBack} />);
 
     fireEvent.click(screen.getByRole('button', { name: /取\s*消/ }));
     expect(onBack).toHaveBeenCalledTimes(1);
 
-    rerender(<SchemaCrud schema={schema} api={api} id={7} onBack={onBack} />);
+    rerender(<SchemaCrudForm schema={schema} api={api} id={7} onBack={onBack} />);
     await screen.findByText('Ada');
     fireEvent.click(screen.getAllByRole('button', { name: /返\s*回/ })[0]);
     expect(onBack).toHaveBeenCalledTimes(2);
@@ -516,7 +519,7 @@ describe('actions', () => {
   it('renders custom extra and the built-in back button', async () => {
     const api = makeApi();
     render(
-      <SchemaCrud
+      <SchemaCrudForm
         schema={schema}
         api={api}
         id={7}

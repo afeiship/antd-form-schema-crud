@@ -4,19 +4,19 @@ import cx from 'classnames';
 import { SchemaForm } from '@jswork/antd-form-schema';
 import { checkRequirement, errorMessage, resolveApi } from '../api';
 import { CLASS_NAME } from '../constants';
-import { getSchemaCrudDefaults } from '../defaults';
+import { getSchemaCrudFormDefaults } from '../defaults';
 import { useCrudActions } from '../hooks/use-crud-actions';
 import { useCrudForm } from '../hooks/use-crud-form';
 import { useCrudMode } from '../hooks/use-crud-mode';
 import { useLatest } from '../hooks/use-latest';
 import { useRecordLoader } from '../hooks/use-record-loader';
-import type { CrudRecord, CrudValues, SchemaCrudProps } from '../types';
+import type { CrudRecord, CrudValues, SchemaCrudFormProps } from '../types';
 import { alertTitleProps } from '../utils/antd';
 import { SchemaCardExtra, SchemaCardTitle } from './schema-card-header';
 import { SchemaFooter } from './schema-footer';
 
-function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
-  props: SchemaCrudProps<TRecord>
+function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
+  props: SchemaCrudFormProps<TRecord>
 ) {
   const {
     mode: controlledMode,
@@ -42,7 +42,7 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
     onModeChange,
   });
 
-  const projectDefaults = getSchemaCrudDefaults();
+  const projectDefaults = getSchemaCrudFormDefaults();
   const resolvedActions =
     projectDefaults.actions && actions
       ? { ...projectDefaults.actions, ...actions }
@@ -207,12 +207,12 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
   );
 }
 
-export const SchemaCrud = Object.assign(SchemaCrudRender, {
-  displayName: 'SchemaCrud',
+export const SchemaCrudForm = Object.assign(SchemaCrudFormRender, {
+  displayName: 'SchemaCrudForm',
   version: __VERSION__,
 });
 
-/** Backward-compatible alias; the previous default export name. */
-export const AntdFormSchemaCrud = SchemaCrud;
+/** Alias kept for the existing package import style. */
+export const AntdFormSchemaCrudForm = SchemaCrudForm;
 
-export default SchemaCrud;
+export default SchemaCrudForm;

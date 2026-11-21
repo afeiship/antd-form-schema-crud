@@ -1,12 +1,13 @@
-export { default } from './components/schema-crud';
-export { SchemaCrud, AntdFormSchemaCrud } from './components/schema-crud';
-export { resolveApi, checkRequirement, errorMessage, getNxApi } from './api';
+export { default } from './components/schema-crud-form';
+export { SchemaCrudForm, AntdFormSchemaCrudForm } from './components/schema-crud-form';
+export { SchemaCrudList } from './components/schema-crud-list';
+export { resolveApi, checkRequirement, checkListRequirement, errorMessage, getNxApi } from './api';
 export {
-  configureSchemaCrud,
-  getSchemaCrudDefaults,
-  resetSchemaCrudDefaults,
+  configureSchemaCrudForm,
+  getSchemaCrudFormDefaults,
+  resetSchemaCrudFormDefaults,
 } from './defaults';
-export type { SchemaCrudDefaults } from './defaults';
+export type { SchemaCrudFormDefaults } from './defaults';
 export type { ApiRequirement } from './api';
 export type {
   CrudMode,
@@ -14,10 +15,17 @@ export type {
   CrudAction,
   CrudRecord,
   CrudValues,
+  CrudListParams,
+  CrudListResult,
   CrudApi,
   CrudActionConfig,
   CrudActions,
+  ListActions,
+  ListPresetField,
+  ListPresetsInput,
+  ListPresets,
   CrudFormProps,
   CrudSuccessEvent,
-  SchemaCrudProps,
+  SchemaCrudFormProps,
+  SchemaCrudListProps,
 } from './types';

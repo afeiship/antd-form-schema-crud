@@ -29,6 +29,7 @@ export function resolveApi<TRecord extends CrudRecord = CrudRecord>(
   };
 
   return {
+    index: api?.index ?? (fromResource('index') as CrudApi<TRecord>['index']),
     show: api?.show ?? (fromResource('show') as CrudApi<TRecord>['show']),
     create: api?.create ?? fromResource('create'),
     update: api?.update ?? fromResource('update'),

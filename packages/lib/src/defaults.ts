@@ -2,10 +2,10 @@ import type { CrudActions, CrudFormProps } from './types';
 import type { ReactNode } from 'react';
 
 /**
- * Project-level defaults for SchemaCrud. Keep data and lifecycle props
+ * Project-level defaults for SchemaCrudForm. Keep data and lifecycle props
  * (`schema`, `api`, `id`, callbacks) on the instance so they stay explicit.
  */
-export interface SchemaCrudDefaults {
+export interface SchemaCrudFormDefaults {
   /** Title subject; `false` hides the title for every instance. */
   title?: ReactNode | false;
   /** Delete confirmation default; the component falls back to `true`. */
@@ -16,10 +16,10 @@ export interface SchemaCrudDefaults {
   formProps?: CrudFormProps;
 }
 
-let globalDefaults: SchemaCrudDefaults = {};
+let globalDefaults: SchemaCrudFormDefaults = {};
 
 /** Merge project-level defaults. Top-level keys replace, matching configureSchemaForm. */
-export function configureSchemaCrud(defaults: SchemaCrudDefaults): void {
+export function configureSchemaCrudForm(defaults: SchemaCrudFormDefaults): void {
   const next = { ...globalDefaults };
   if (defaults.title !== undefined) next.title = defaults.title;
   if (defaults.confirmDelete !== undefined) next.confirmDelete = defaults.confirmDelete;
@@ -29,7 +29,7 @@ export function configureSchemaCrud(defaults: SchemaCrudDefaults): void {
 }
 
 /** Return a copy so callers cannot mutate the active defaults. */
-export function getSchemaCrudDefaults(): SchemaCrudDefaults {
+export function getSchemaCrudFormDefaults(): SchemaCrudFormDefaults {
   const result = { ...globalDefaults };
   if (globalDefaults.actions) {
     result.actions = Object.fromEntries(
@@ -44,6 +44,6 @@ export function getSchemaCrudDefaults(): SchemaCrudDefaults {
 }
 
 /** Remove all project-level defaults. Primarily for tests and app teardown. */
-export function resetSchemaCrudDefaults(): void {
+export function resetSchemaCrudFormDefaults(): void {
   globalDefaults = {};
 }

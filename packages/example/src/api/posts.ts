@@ -67,7 +67,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 /**
  * 按宿主项目的 nx.$api 约定注册资源方法：
- * `${resource}_${action}`，参数与 SchemaCrud 的 CrudApi 一致。
+ * `${resource}_${action}`，参数与 SchemaCrudForm 的 CrudApi 一致。
  */
 export const postsApi = {
   posts_index: (params: { page?: number; size?: number } = {}) =>

@@ -44,3 +44,21 @@ export function checkRequirement(
 
   return { missing, message: map[missing[0]] };
 }
+
+/** List needs only the fixed index method. */
+export function checkListRequirement(
+  api: CrudApi,
+  resource: string | undefined
+): ApiRequirement {
+  const hasSource = Boolean(resource) || Boolean(api.index);
+  if (!hasSource) {
+    return { missing: ['api'], message: '缺少 resource 或 api，无法定位列表接口。' };
+  }
+  if (!api.index) {
+    return {
+      missing: ['index'],
+      message: `缺少 ${resource ? `${resource}_index` : 'index'} 接口。`,
+    };
+  }
+  return { missing: [], message: '' };
+}

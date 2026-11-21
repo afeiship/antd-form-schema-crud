@@ -2,7 +2,7 @@
 
 日期：2026-11-21
 
-状态：待确认
+状态：已实现
 
 关系：在 `SchemaCrudForm` v2 之上增加列表组件。列表只负责 `xx_index`、分页、行操作和列表级动作；新建、详情、编辑通过路由进入独立的 `SchemaCrudForm` 页面。
 
@@ -486,10 +486,10 @@ packages/lib/src/
 ├── types.ts                     # CrudListParams / CrudListResult / ListActions
 ├── components/
 │   ├── schema-crud-list.tsx     # Card + Table + 分页 + 行操作
-│   └── schema-crud.tsx          # 复用，不改职责
+│   └── schema-crud-form.tsx     # 复用，不改职责
 ├── hooks/
 │   ├── use-crud-list.ts         # index 请求、分页、竞态、删除回退
-│   └── use-crud-columns.ts      # 显式列 / presets / schema 推导列 + 操作列
+│   └── use-crud-columns.tsx     # 显式列 / presets / schema 推导列 + 操作列
 └── utils/
     └── list.ts                  # 响应校验、option label 映射
 ```
@@ -518,7 +518,8 @@ packages/lib/src/
 
 ```text
 packages/example/src/pages/posts/
-├── index.tsx          # 列表
+├── index.tsx          # 页面导出
+├── list.tsx           # 列表
 ├── create.tsx         # 新建
 ├── detail.tsx         # 详情
 ├── edit.tsx           # 编辑
@@ -597,9 +598,9 @@ export const postListPresets: ListPresets = {
 - 新增 `SchemaCrudList`，不修改 `SchemaCrudForm` props。
 - 版本保持 `2.0.0` 不变；包尚未发布，列表能力和改名都直接进同一个版本，不单独升版本号。
 
-## 待确认
+## 已确认的默认值
 
-1. 行内删除默认开启，还是默认只在详情里删除？推荐默认开启，但保留 `Popconfirm`。
-2. 不传 `columns` 时从 schema 推导列表列，是否接受？推荐接受，显式 `columns` 仍然优先。
-3. 示例使用 `react-router-dom` 的 `BrowserRouter + Routes`，路由按 `/posts`、`/posts/new`、`/posts/:id`、`/posts/:id/edit` 组织，是否接受？
-4. 列 presets 只收敛 `title / width / align / ellipsis / fixed`，不包含 `render`，是否接受？推荐接受，复杂单元格继续用显式 `columns`。
+1. 行内删除默认开启，保留 `Popconfirm`；详情页删除继续复用 `SchemaCrudForm`。
+2. 不传 `columns` 时从 schema 推导列表列；显式 `columns` 优先。
+3. 示例使用 `react-router-dom` 的 `BrowserRouter + Routes`，路由按 `/posts`、`/posts/new`、`/posts/:id`、`/posts/:id/edit` 组织。
+4. 列 presets 只收敛 `title / width / align / ellipsis / fixed`，不包含 `render`；复杂单元格继续用显式 `columns`。

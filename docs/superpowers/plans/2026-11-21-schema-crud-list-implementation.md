@@ -4,7 +4,7 @@
 
 依据：`docs/superpowers/specs/2026-11-21-schema-resource-list-design.md`
 
-状态：进行中
+状态：已完成（2026-11-21）
 
 ## 实施原则
 

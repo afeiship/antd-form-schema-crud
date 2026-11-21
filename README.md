@@ -1,35 +1,49 @@
 # antd-form-schema-crud
-> Ant Design resource CRUD driven by antd-form-schema and show/create/update/destroy APIs.
+
+> Ant Design schema-driven CRUD: `SchemaCrudForm` for one record, `SchemaCrudList` for a resource list.
 
 [![version][version-image]][version-url]
 [![license][license-image]][license-url]
 [![download][download-image]][download-url]
 
 ## installation
+
 ```shell
 pnpm add @jswork/antd-form-schema-crud
 ```
 
 ## usage
-  ```js
-  import AntdFormSchemaCrud from '@jswork/antd-form-schema-crud';
-  import '@jswork/antd-form-schema-crud/style.css';
 
-  function App() {
-    return (
-      <div className="m-10 p-4 shadow bg-gray-100 text-gray-800 hover:shadow-md transition-all">
-        <div className="badge badge-warning absolute right-0 top-0 m-4">
-          Build Time: {BUILD_TIME}
-        </div>
-        <AntdFormSchemaCrud className="debug-red">
-          abc
-        </AntdFormSchemaCrud>
-      </div>
-    );
-  }
+```tsx
+import { SchemaCrudForm, SchemaCrudList } from '@jswork/antd-form-schema-crud';
+import '@jswork/antd-form-schema-crud/style.css';
 
-  export default App;
-  ```
+// 列表：固定调用 posts_index({ page, size, ...params })，返回 { rows, total }
+<SchemaCrudList
+  resource="posts"
+  schema={postSchema}
+  title="文章"
+  onCreate={() => navigate('/posts/new')}
+  onView={(record) => navigate(`/posts/${record.id}`)}
+  onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
+/>;
+
+// 单条记录：id 为空是新建，有值是详情；编辑、删除由组件处理
+<SchemaCrudForm
+  resource="posts"
+  schema={postSchema}
+  id={id}
+  title="文章"
+  onBack={() => navigate('/posts')}
+/>;
+```
+
+- 组件不内置路由；列表跳转由 `onCreate / onView / onEdit` 交给业务。
+- `resource` 自动解析 `nx.$api` 的 `index / show / create / update / destroy`。
+- 列可以用显式 `columns`，也可以由 `schema.fields` 推导，再用 `presets` 补展示属性。
+- 成功回调统一为 `onSuccess(event)`，按 `event.action` 区分创建、保存、删除。
+
+完整用法见 [packages/lib/README.md](packages/lib/README.md)，多页面示例见 [packages/example](packages/example)。
 
 ## license
 Code released under [the MIT license](https://github.com/afeiship/antd-form-schema-crud/blob/main/LICENSE.txt).

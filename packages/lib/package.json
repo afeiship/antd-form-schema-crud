@@ -13,7 +13,7 @@
     "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },
-  "description": "Ant Design resource CRUD driven by antd-form-schema and show/create/update/destroy APIs.",
+  "description": "Ant Design schema-driven CRUD form and resource list built on antd-form-schema.",
   "homepage": "https://js.work",
   "license": "MIT",
   "sideEffects": [

@@ -1,0 +1,93 @@
+# @jswork/antd-form-schema-crud
+
+Ant Design schema-driven CRUD. Two components:
+
+- SchemaCrudForm: one record. create / view / edit / delete, driven by @jswork/antd-form-schema.
+- SchemaCrudList: one resource list. server-side pagination, columns, row actions, delete.
+
+## Install
+
+pnpm add @jswork/antd-form-schema-crud
+
+## List contract
+
+SchemaCrudList calls nx.$api[`${resource}_index`] with:
+
+  { page, size, ...params }
+
+and expects:
+
+  { rows: TRecord[], total: number }
+
+`page` and `size` are owned by the component. Unwrap any API envelope in the adapter.
+
+## Minimal list
+
+```tsx
+<SchemaCrudList
+  resource="posts"
+  schema={postSchema}
+  title="文章"
+  presets={postListPresets}
+  onCreate={() => navigate('/posts/new')}
+  onView={(record) => navigate(`/posts/${record.id}`)}
+  onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
+/>
+```
+
+List does not import react-router. Navigation is entirely callback-driven.
+
+## Minimal form
+
+```tsx
+<SchemaCrudForm
+  resource="posts"
+  schema={postSchema}
+  id={id}
+  title="文章"
+  onBack={() => navigate('/posts')}
+/>
+```
+
+`id` absent => create. `id` present => view by default; internal edit switch. Controlled mode: pass `mode` and `onModeChange`.
+
+## List presets
+
+```ts
+const presets: ListPresets = {
+  fields: {
+    title: { title: '标题', width: 240 },
+    status: { title: '状态', width: 100, align: 'center' },
+  },
+};
+```
+
+Column priority: explicit `columns` > `presets` > `schema.fields.label` > field key.
+Presets only decorate existing schema fields; they never add columns. No `render` in presets.
+
+## Actions
+
+- create: `actions.create !== false` and `onCreate`
+- view: `actions.view !== false` and `onView`; disables row click too
+- edit: `actions.edit !== false` and `onEdit`
+- delete: `actions.delete !== false` and resolved `destroy`
+- refresh: `actions.refresh !== false`, shown by default
+- back: `onBack` present
+
+## Defaults
+
+- List: pageSize 10, rowKey 'id', confirmDelete true, bordered table, size middle.
+- Delete success: reload; if current page becomes empty and page > 1, go back one page.
+- Form success: single `onSuccess(event)` with action create / update / delete.
+
+## Global form defaults
+
+configureSchemaCrudForm({ title, confirmDelete, actions, formProps })
+getSchemaCrudFormDefaults()
+resetSchemaCrudFormDefaults()
+
+List does not read these form defaults.
+
+## Style
+
+import '@jswork/antd-form-schema-crud/style.css'

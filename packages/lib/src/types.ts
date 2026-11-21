@@ -1,5 +1,5 @@
-import type { ReactNode, ComponentProps } from 'react';
-import type { ButtonProps } from 'antd';
+import type { ReactNode, ComponentProps, Key } from 'react';
+import type { ButtonProps, TableProps } from 'antd';
 import type { FormSchema, SchemaForm } from '@jswork/antd-form-schema';
 
 export type CrudMode = 'create' | 'edit' | 'view';
@@ -9,8 +9,22 @@ export type CrudAction = 'load' | 'create' | 'update' | 'delete';
 export type CrudRecord = Record<string, any>;
 export type CrudValues = Record<string, any>;
 
-/** The four resource methods. Every method is optional so partial APIs resolve per-action. */
+/** Fixed payload for resource list requests. */
+export interface CrudListParams {
+  page: number;
+  size: number;
+  [key: string]: any;
+}
+
+/** Fixed response shape for `${resource}_index`. */
+export interface CrudListResult<TRecord = CrudRecord> {
+  rows: TRecord[];
+  total: number;
+}
+
+/** The five resource methods. Every method is optional so partial APIs resolve per-action. */
 export interface CrudApi<TRecord = CrudRecord> {
+  index?: (params: CrudListParams) => Promise<CrudListResult<TRecord>>;
   show?: (params: { id: CrudId }) => Promise<TRecord>;
   create?: (values: CrudValues) => Promise<unknown>;
   update?: (values: CrudValues & { id: CrudId }) => Promise<unknown>;
@@ -34,6 +48,35 @@ export interface CrudActions {
   delete?: false | CrudActionConfig;
 }
 
+export interface ListActions {
+  /** New button; needs `onCreate` to render. */
+  create?: false | CrudActionConfig;
+  /** Refresh button; visible by default. */
+  refresh?: false | CrudActionConfig;
+  /** View action; needs `onView` to render. */
+  view?: false | CrudActionConfig;
+  /** Edit action; needs `onEdit` to render. */
+  edit?: false | CrudActionConfig;
+  /** Row delete action; needs `destroy` to render. */
+  delete?: false | CrudActionConfig;
+}
+
+/** Column presentation presets, keyed by field key. */
+export interface ListPresetField {
+  title?: ReactNode;
+  width?: number | string;
+  align?: 'left' | 'center' | 'right';
+  ellipsis?: boolean;
+  fixed?: 'left' | 'right';
+}
+
+export interface ListPresetsInput {
+  fields?: Record<string, ListPresetField>;
+}
+
+/** Sectioned presets, or a flat key -> title map. */
+export type ListPresets = ListPresetsInput | Record<string, string>;
+
 /** SchemaForm props minus the ones this component owns. */
 export type CrudFormProps = Omit<
   ComponentProps<typeof SchemaForm>,
@@ -45,7 +88,7 @@ export type CrudSuccessEvent =
   | { action: 'update'; result: unknown; values: CrudValues }
   | { action: 'delete'; result: unknown };
 
-export interface SchemaCrudProps<TRecord = CrudRecord> {
+export interface SchemaCrudFormProps<TRecord = CrudRecord> {
   /** Resource prefix; resolves `nx.$api[`${resource}_show`]` and friends. */
   resource?: string;
   /** Shared schema for create, edit and view. Never mutated. */
@@ -74,6 +117,41 @@ export interface SchemaCrudProps<TRecord = CrudRecord> {
   /** Called instead of mutating internal mode when `mode` is controlled. */
   onModeChange?: (mode: CrudMode) => void;
   onError?: (error: unknown, action: CrudAction) => void;
+
+  className?: string;
+}
+
+export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
+  resource?: string;
+  schema: FormSchema;
+  api?: CrudApi<TRecord>;
+
+  title?: ReactNode | false;
+  /** Column presentation presets, keyed by field key. */
+  presets?: ListPresets;
+  /** Explicit columns; omitted columns are derived from schema.fields. */
+  columns?: TableProps<TRecord>['columns'];
+  rowKey?: keyof TRecord | ((record: TRecord) => Key);
+
+  /** Business filters, sent with page / size. */
+  params?: Record<string, any>;
+  pageSize?: number;
+
+  actions?: ListActions;
+  confirmDelete?: boolean;
+  tableProps?: Omit<
+    TableProps<TRecord>,
+    'columns' | 'dataSource' | 'pagination' | 'rowKey' | 'loading'
+  >;
+
+  onCreate?: () => void;
+  onView?: (record: TRecord) => void;
+  onEdit?: (record: TRecord) => void;
+  /** Row delete success; the component has already refreshed the list. */
+  onSuccess?: (event: CrudSuccessEvent) => void;
+  onError?: (error: unknown, action: CrudAction) => void;
+  /** List page back. */
+  onBack?: () => void;
 
   className?: string;
 }
