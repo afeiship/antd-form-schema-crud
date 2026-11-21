@@ -55,6 +55,21 @@ describe('list basics', () => {
     expect(refreshButton).toHaveClass('ant-btn-sm');
   });
 
+  it('hides a derived column through presets.hidden', async () => {
+    const api = makeApi();
+    render(
+      <SchemaCrudList
+        schema={schema}
+        api={api}
+        presets={{ fields: { status: { hidden: true } } }}
+      />
+    );
+
+    await screen.findByText('Ada');
+    expect(screen.getByText('姓名')).toBeInTheDocument();
+    expect(screen.queryByText('状态')).not.toBeInTheDocument();
+  });
+
   it('supports explicit columns and presets, with explicit props winning', async () => {
     const api = makeApi();
     render(

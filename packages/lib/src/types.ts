@@ -61,6 +61,8 @@ export interface ListActions {
 
 /** Column presentation presets, keyed by field key. */
 export interface ListPresetField {
+  /** Hide this schema-derived column; the form field is unchanged. */
+  hidden?: boolean;
   title?: ReactNode;
   width?: number | string;
   align?: 'left' | 'center' | 'right';

@@ -71,6 +71,7 @@ export function useCrudColumns<TRecord extends CrudRecord>({
       .filter((field) => {
         if (field.hidden || field.condition) return false;
         const preset = presetMap[field.key];
+        if (preset?.hidden) return false;
         return Boolean(preset?.title || field.label);
       })
       .map((field) => {

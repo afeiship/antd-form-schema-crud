@@ -100,6 +100,7 @@ export const postListPresets: ListPresets = {
 
 - 列优先级：显式 `columns` > `presets` > `schema.fields.label` > 字段 `key`。
 - `presets` 不创建列；schema 没有的字段不会多出一列。
+- `hidden: true` 只隐藏列表里的推导列，表单字段不受影响。
 - 操作列不受 `presets` 影响；复杂单元格继续用显式 `columns`。
 
 ## Project defaults

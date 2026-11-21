@@ -168,6 +168,8 @@ export interface ListPresetField {
   align?: 'left' | 'center' | 'right';
   ellipsis?: boolean;
   fixed?: 'left' | 'right';
+  /** 只隐藏推导列，不改变表单字段。 */
+  hidden?: boolean;
 }
 
 export interface ListPresetsInput {
