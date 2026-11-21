@@ -1,15 +1,13 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, Button, Card, Spin } from 'antd';
-import type { FormInstance } from 'antd';
 import cx from 'classnames';
 import { SchemaForm } from '@jswork/antd-form-schema';
-import type { FormSchema } from '@jswork/antd-form-schema';
 import { checkRequirement, errorMessage, resolveApi } from '../api';
 import { CLASS_NAME } from '../constants';
 import { getSchemaCrudDefaults } from '../defaults';
 import { useCrudActions } from '../hooks/use-crud-actions';
+import { useCrudForm } from '../hooks/use-crud-form';
 import { useCrudMode } from '../hooks/use-crud-mode';
-import { useDirtyState } from '../hooks/use-dirty-state';
 import { useLatest } from '../hooks/use-latest';
 import { useRecordLoader } from '../hooks/use-record-loader';
 import type { CrudRecord, CrudValues, SchemaCrudProps } from '../types';
@@ -60,10 +58,7 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
   const needsLoad = mode !== 'create';
 
   const [reloadVersion, setReloadVersion] = useState(0);
-  const [readyKey, setReadyKey] = useState('');
-  const [dirtyBaseline, setDirtyBaseline] = useState<CrudValues>({});
 
-  const formRef = useRef<FormInstance | null>(null);
   const resolvedApiRef = useLatest(resolvedApi);
   const reload = useCallback(() => setReloadVersion((value) => value + 1), []);
 
@@ -98,45 +93,21 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
   const showForm = mode === 'create' ? !blocked : loadState === 'ready';
   const available = showForm && !loading && !loadError;
 
-  const initialValues = useMemo<CrudValues>(() => {
-    const base: CrudValues = { ...(schema.initialValues ?? {}) };
-    if (mode === 'create') return base;
-    return { ...base, ...((record as CrudValues | undefined) ?? {}) };
-  }, [schema.initialValues, mode, record]);
-
-  // Never mutate the incoming schema; only build a shallow copy.
-  const resolvedSchema = useMemo<FormSchema>(
-    () => ({ ...schema, initialValues, viewMode: mode === 'view' }),
-    [schema, initialValues, mode]
-  );
-
-  const formKey = `${mode}:${String(id ?? '')}:${reloadVersion}`;
-  const formReady = readyKey === formKey;
-
-  const { dirty, check: checkDirty } = useDirtyState(mode === 'edit', dirtyBaseline);
-
   const {
     layout = 'vertical',
     onValuesChange: userOnValuesChange,
     ...restFormProps
   } = resolvedFormProps;
 
-  const handleFormReady = useCallback(
-    (form: FormInstance) => {
-      formRef.current = form;
-      setReadyKey(formKey);
-      if (mode === 'edit') setDirtyBaseline(form.getFieldsValue());
-    },
-    [formKey, mode]
-  );
-
-  const handleValuesChange = useCallback(
-    (changedValues: CrudValues, allValues: CrudValues) => {
-      checkDirty(allValues);
-      userOnValuesChange?.(changedValues, allValues);
-    },
-    [checkDirty, userOnValuesChange]
-  );
+  const { resolvedSchema, formKey, formReady, dirty, submit, handleFormReady, handleValuesChange } =
+    useCrudForm({
+      mode,
+      id,
+      schema,
+      record: record as CrudValues | undefined,
+      reloadVersion,
+      onValuesChange: userOnValuesChange,
+    });
 
   const handleCancel = useCallback(() => {
     if (mode === 'edit') {
@@ -152,8 +123,6 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
     setMode('edit');
     clearActionError();
   }, [mode, record, setMode, clearActionError]);
-
-  const handleSubmit = useCallback(() => formRef.current?.submit(), []);
 
   const canCancel = resolvedActions?.cancel !== false && (mode === 'edit' || Boolean(onBack));
   const showBack = canCancel && (mode !== 'view' || Boolean(onBack));
@@ -182,7 +151,7 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
         onCancel={handleCancel}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onSubmit={handleSubmit}
+        onSubmit={submit}
       />
     </footer>
   );
