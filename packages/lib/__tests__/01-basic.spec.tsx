@@ -436,6 +436,25 @@ describe('delete', () => {
 });
 
 describe('loading and failure', () => {
+  it('uses the card skeleton instead of a spin while the record loads', async () => {
+    const api = makeApi();
+    let resolve!: (record: TestRecord) => void;
+    api.show.mockImplementation(
+      () => new Promise<TestRecord>((done) => {
+        resolve = done;
+      })
+    );
+
+    const { container } = render(<SchemaCrudForm schema={schema} api={api} id={7} />);
+    await waitFor(() => expect(api.show).toHaveBeenCalled());
+    expect(container.querySelector('.ant-card-loading')).toBeInTheDocument();
+    expect(container.querySelector('.ant-spin')).not.toBeInTheDocument();
+
+    resolve({ id: 7, name: 'Ada', status: 'active' });
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
+    expect(container.querySelector('.ant-card-loading')).not.toBeInTheDocument();
+  });
+
   it('shows a retry alert when show fails and recovers on retry', async () => {
     const api = makeApi();
     api.show.mockRejectedValueOnce(new Error('boom'));

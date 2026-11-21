@@ -37,6 +37,25 @@ afterEach(() => {
 });
 
 describe('list basics', () => {
+  it('uses the card skeleton for the initial load and table loading afterwards', async () => {
+    const api = makeApi();
+    let resolve!: (result: { rows: Row[]; total: number }) => void;
+    api.index.mockImplementation(
+      () => new Promise<{ rows: Row[]; total: number }>((done) => {
+        resolve = done;
+      })
+    );
+
+    const { container } = render(<SchemaCrudList schema={schema} api={api} />);
+    await waitFor(() => expect(api.index).toHaveBeenCalled());
+    expect(container.querySelector('.ant-card-loading')).toBeInTheDocument();
+    expect(container.querySelector('.ant-spin')).not.toBeInTheDocument();
+
+    resolve({ rows, total: rows.length });
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
+    expect(container.querySelector('.ant-card-loading')).not.toBeInTheDocument();
+  });
+
   it('requests page 1 and renders schema-derived columns', async () => {
     const api = makeApi();
     render(<SchemaCrudList schema={schema} api={api} title="用户" onCreate={vi.fn()} />);

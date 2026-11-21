@@ -14,7 +14,7 @@ v1 已经能完成创建、编辑、预览、删除，但页面接入成本偏�
 
 
 
-1. **UI 参考&#x20;**`react-ant-resource-form`：用 `Card` 作为统一壳，标题栏左侧有图标返回和未保存标记，底部工具栏保留取消/返回，表单放进 `Spin`，操作按钮固定在底部。
+1. **UI 参考&#x20;**`react-ant-resource-form`：用 `Card` 作为统一壳，标题栏左侧有图标返回和未保存标记，底部工具栏保留取消/返回，初始化直接使用 `Card` 的 `loading`，操作按钮固定在底部。
 
 2. **API 收敛**：只保留资源、数据、生命周期三类入口，把能从 schema 推导的配置全部收回 schema，把三个成功回调合并成一个 `onSuccess`，把模式切换收进组件内部，同时保留受控模式作为逃生口。
 
@@ -36,7 +36,7 @@ v1 已经能完成创建、编辑、预览、删除，但页面接入成本偏�
 
 * 标题左侧提供图标返回；底部工具栏保留取消/返回文本按钮。
 
-* 内容区统一包 `Spin`，加载时保留卡片结构，减少布局跳动。
+* 初始化使用 `Card.loading` 骨架，加载时保留卡片结构，不再额外引入 `Spin`。
 
 * 底部按钮固定在表单下方：保存、返回；保存按钮在编辑态默认禁用，直到表单发生变化。
 
@@ -293,14 +293,13 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
   title={titleView}
   extra={extraView}
   className={...}
+  loading={loading}
 >
-  <Spin spinning={loading}>
-    {error ? <Alert ... /> : null}
-    {ready ? <SchemaForm ... /> : null}
-    <footer className="antd-form-schema-crud__footer">
-      {actions}
-    </footer>
-  </Spin>
+  {error ? <Alert ... /> : null}
+  {ready ? <SchemaForm ... /> : null}
+  <footer className="antd-form-schema-crud__footer">
+    {actions}
+  </footer>
 </Card>
 ```
 
@@ -396,7 +395,7 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 
 
 
-* 首次 `show` 加载：`Spin` 包住卡片内容，保留标题栏和底部骨架。
+* 首次 `show` 加载：直接使用 `Card.loading` 骨架，不再额外包 `Spin`。
 
 * 加载失败：内容区显示 `Alert`，附 “重试” 按钮；底部只保留返回。
 

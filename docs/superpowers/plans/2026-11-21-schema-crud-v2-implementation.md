@@ -72,7 +72,7 @@
 
 1. 根节点改为 `Card`，`title` 自动拼接“新建/详情/编辑”，`extra` 后追加返回按钮。
 2. 编辑态有修改时标题后显示橙色圆点。
-3. `Spin` 包住内容区，不再用单独的 loading 占位块替换卡片。
+3. 初始化直接使用 `Card.loading`，不再额外包 `Spin`，也不用单独的 loading 占位块替换卡片。
 4. 底部按钮改为 v2 的 `save/cancel/edit/delete`：
    - create：取消 / 创建；
    - edit：删除 / 取消 / 保存；

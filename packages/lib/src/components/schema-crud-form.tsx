@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Button, Card, Spin } from 'antd';
+import { Alert, Button, Card } from 'antd';
 import cx from 'classnames';
 import { SchemaForm } from '@jswork/antd-form-schema';
 import { checkRequirement, errorMessage, resolveApi } from '../api';
@@ -166,50 +166,49 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
       className={cx(CLASS_NAME, className)}
       title={titleNode}
       extra={extraNode}
+      loading={loading}
       aria-busy={loading || undefined}
     >
-      <Spin spinning={loading}>
-        <div className={`${CLASS_NAME}__body`}>
-          {blocked ? (
-            <Alert type="error" showIcon {...alertTitleProps(requirement.message)} />
-          ) : loadError ? (
-            <Alert
-              type="error"
-              showIcon
-              {...alertTitleProps('加载失败')}
-              description={errorMessage(loadError, '记录加载失败，请稍后重试。')}
-              action={
-                <Button size="small" onClick={reload}>
-                  重试
-                </Button>
-              }
-            />
-          ) : showForm ? (
-            <SchemaForm
-              {...restFormProps}
-              layout={layout}
-              labelCol={labelCol}
-              wrapperCol={wrapperCol}
-              key={formKey}
-              meta={resolvedSchema}
-              onFinish={handleFinish}
-              onFormReady={handleFormReady}
-              onValuesChange={handleValuesChange}
-            />
-          ) : null}
+      <div className={`${CLASS_NAME}__body`}>
+        {blocked ? (
+          <Alert type="error" showIcon {...alertTitleProps(requirement.message)} />
+        ) : loadError ? (
+          <Alert
+            type="error"
+            showIcon
+            {...alertTitleProps('加载失败')}
+            description={errorMessage(loadError, '记录加载失败，请稍后重试。')}
+            action={
+              <Button size="small" onClick={reload}>
+                重试
+              </Button>
+            }
+          />
+        ) : showForm ? (
+          <SchemaForm
+            {...restFormProps}
+            layout={layout}
+            labelCol={labelCol}
+            wrapperCol={wrapperCol}
+            key={formKey}
+            meta={resolvedSchema}
+            onFinish={handleFinish}
+            onFormReady={handleFormReady}
+            onValuesChange={handleValuesChange}
+          />
+        ) : null}
 
-          {actionError ? (
-            <Alert
-              className={`${CLASS_NAME}__alert`}
-              type="error"
-              showIcon
-              closable
-              {...alertTitleProps(actionError.message)}
-            />
-          ) : null}
-        </div>
-        {footerNode}
-      </Spin>
+        {actionError ? (
+          <Alert
+            className={`${CLASS_NAME}__alert`}
+            type="error"
+            showIcon
+            closable
+            {...alertTitleProps(actionError.message)}
+          />
+        ) : null}
+      </div>
+      {footerNode}
     </Card>
   );
 }

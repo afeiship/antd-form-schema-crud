@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Alert, Button, Card, Space, Spin, Table } from 'antd';
+import { Alert, Button, Card, Space, Table } from 'antd';
 import type { TableProps } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -130,6 +130,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
 
   const restTableProps = tableProps ?? {};
   const rowKeyProp = rowKey as TableProps<TRecord>['rowKey'];
+  const initialLoading = loading && rows.length === 0 && !loadError;
 
   return (
     <Card
@@ -137,6 +138,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
       className={cx(CLASS_NAME, `${CLASS_NAME}--list`, className)}
       title={titleNode}
       extra={extra}
+      loading={initialLoading}
       aria-busy={loading || undefined}
     >
       {blocked ? (
@@ -154,7 +156,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
           }
         />
       ) : (
-        <Spin spinning={loading}>
+        <>
           {actionError ? (
             <Alert
               className={`${CLASS_NAME}__alert`}
@@ -172,6 +174,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
             columns={resolvedColumns}
             dataSource={rows}
             rowKey={rowKeyProp}
+            loading={loading}
             pagination={{
               current: page,
               pageSize: currentPageSize,
@@ -181,7 +184,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
               onChange: handlePageChange,
             }}
           />
-        </Spin>
+        </>
       )}
     </Card>
   );

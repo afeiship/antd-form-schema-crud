@@ -344,7 +344,7 @@ nx.set(nx, '$api', {
 
 Card 内容：
 
-- 加载中用 `Spin` 包住 Table，保留表格布局。
+- 首次加载使用 `Card.loading` 骨架；翻页、刷新等后续请求使用 Table 自身 `loading`。
 - 加载失败显示 `Alert + 重试`。
 - 空数据走 Ant Design 默认空状态。
 - 表格默认 `bordered`、`size="middle"`。
