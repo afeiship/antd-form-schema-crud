@@ -1,5 +1,5 @@
 import { App as AntdApp } from 'antd';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { SchemaCrudForm, errorMessage } from '@jswork/antd-form-schema-crud';
 import type { CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
@@ -8,16 +8,17 @@ import { postSchema } from './schema';
 
 export function PostsEditPage() {
   const navigate = useNavigate();
+  const { search } = useLocation();
   const { id } = useParams();
   const { message } = AntdApp.useApp();
 
   const handleSuccess = (_event: CrudSuccessEvent) => {
     message.success('保存成功');
-    navigate(`/posts/${id}`);
+    navigate(`/posts/${id}${search}`);
   };
 
   const handleModeChange = () => {
-    navigate('/posts');
+    navigate(`/posts${search}`);
   };
 
   return (
@@ -35,7 +36,7 @@ export function PostsEditPage() {
           title="文章"
           onModeChange={handleModeChange}
           onSuccess={handleSuccess}
-          onBack={() => navigate('/posts')}
+          onBack={() => navigate(`/posts${search}`)}
           onError={(error) => message.error(errorMessage(error, '保存失败，请重试。'))}
         />
       </div>

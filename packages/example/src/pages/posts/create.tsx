@@ -1,5 +1,5 @@
 import { App as AntdApp } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { SchemaCrudForm, errorMessage } from '@jswork/antd-form-schema-crud';
 import type { CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
@@ -8,12 +8,13 @@ import { postSchema } from './schema';
 
 export function PostsCreatePage() {
   const navigate = useNavigate();
+  const { search } = useLocation();
   const { message } = AntdApp.useApp();
 
   const handleSuccess = (event: CrudSuccessEvent) => {
     message.success('创建成功');
     const record = event.result as PostRecord | undefined;
-    navigate(`/posts/${record?.id ?? ''}`);
+    navigate(`/posts/${record?.id ?? ''}${search}`);
   };
 
   return (
@@ -29,7 +30,7 @@ export function PostsCreatePage() {
           mode="create"
           title="文章"
           onSuccess={handleSuccess}
-          onBack={() => navigate('/posts')}
+          onBack={() => navigate(`/posts${search}`)}
           onError={(error) => message.error(errorMessage(error, '创建失败，请重试。'))}
         />
       </div>

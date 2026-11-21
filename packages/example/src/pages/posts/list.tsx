@@ -1,5 +1,5 @@
 import { App as AntdApp } from 'antd';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { SchemaCrudList, errorMessage } from '@jswork/antd-form-schema-crud';
 import type { CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
@@ -16,6 +16,7 @@ function readPositive(value: string | null, fallback: number) {
 
 export function PostsListPage() {
   const navigate = useNavigate();
+  const { search } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { message } = AntdApp.useApp();
   const page = readPositive(searchParams.get('page'), 1);
@@ -52,8 +53,8 @@ export function PostsListPage() {
           page={page}
           pageSize={pageSize}
           onPageChange={handlePageChange}
-          onCreate={() => navigate('/posts/new')}
-          onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
+          onCreate={() => navigate(`/posts/new${search}`)}
+          onEdit={(record) => navigate(`/posts/${record.id}/edit${search}`)}
           onSuccess={handleSuccess}
           onError={(error) => message.error(errorMessage(error, '操作失败，请重试。'))}
         />
