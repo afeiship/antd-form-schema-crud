@@ -3,6 +3,8 @@ import type { ButtonProps, TableProps } from 'antd';
 import type { FormSchema, SchemaForm } from '@jswork/antd-form-schema';
 
 export type CrudMode = 'create' | 'edit' | 'view';
+/** `form` resolves to `create` without an id and `edit` with one. */
+export type CrudFormMode = CrudMode | 'form';
 export type CrudId = string | number;
 export type CrudAction = 'load' | 'create' | 'update' | 'delete';
 
@@ -104,7 +106,7 @@ export interface SchemaCrudFormProps<TRecord = CrudRecord> {
   /** Record id; absent means create, present defaults to view. */
   id?: CrudId;
   /** Controlled mode; omit to let the component manage create/view/edit internally. */
-  mode?: CrudMode;
+  mode?: CrudFormMode;
   /** Explicit API methods; each one overrides the `resource` lookup for its action. */
   api?: CrudApi<TRecord>;
 

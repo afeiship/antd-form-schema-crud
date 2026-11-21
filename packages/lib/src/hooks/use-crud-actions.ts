@@ -6,9 +6,12 @@ import type { CrudAction, CrudApi, CrudId, CrudMode, CrudSuccessEvent, CrudValue
 interface UseCrudActionsOptions<TRecord> {
   mode: CrudMode;
   id?: CrudId;
+  /** `mode="form"`: keep editing after save and leave through onBack after delete. */
+  formMode?: boolean;
   /** Always points at the latest merged API. */
   apiRef: MutableRefObject<CrudApi<TRecord>>;
   setMode: (mode: CrudMode) => void;
+  onBack?: () => void;
   /** Refetch the current record after an update switches back to view. */
   reload: () => void;
   onSuccess?: (event: CrudSuccessEvent) => void;
@@ -31,8 +34,10 @@ interface CrudActionsResult {
 export function useCrudActions<TRecord>({
   mode,
   id,
+  formMode = false,
   apiRef,
   setMode,
+  onBack,
   reload,
   onSuccess,
   onError,
@@ -101,14 +106,19 @@ export function useCrudActions<TRecord>({
       }
 
       if (action === 'update') {
-        setMode('view');
-        setPendingReload(true);
-        await emitSuccess({ action: 'update', result, values });
+        if (formMode) {
+          await emitSuccess({ action: 'update', result, values });
+          reload();
+        } else {
+          setMode('view');
+          setPendingReload(true);
+          await emitSuccess({ action: 'update', result, values });
+        }
       } else {
         await emitSuccess({ action: 'create', result, values });
       }
     },
-    [mode, id, emitSuccess, onError, apiRef, setMode]
+    [mode, id, formMode, emitSuccess, onError, apiRef, setMode, reload]
   );
 
   const handleDelete = useCallback(async () => {
@@ -127,7 +137,8 @@ export function useCrudActions<TRecord>({
     setDeleteLoading(true);
     try {
       const result = await apiRef.current.destroy({ id });
-      setMode('create');
+      if (formMode) onBack?.();
+      else setMode('create');
       await emitSuccess({ action: 'delete', result });
     } catch (error) {
       setActionError({ action: 'delete', message: errorMessage(error, '删除失败，请重试。') });
@@ -136,7 +147,7 @@ export function useCrudActions<TRecord>({
       deletingRef.current = false;
       setDeleteLoading(false);
     }
-  }, [id, emitSuccess, onError, apiRef, setMode]);
+  }, [id, formMode, onBack, emitSuccess, onError, apiRef, setMode]);
 
   return {
     actionError,

@@ -65,7 +65,7 @@ describe('card size', () => {
 describe('exports', () => {
   it('exposes a named and a default export with a version', () => {
     expect(NamedSchemaCrudForm).toBe(SchemaCrudForm);
-    expect(SchemaCrudForm.version).toBe('1.0.0');
+    expect(SchemaCrudForm.version).toBe('1.0.1');
   });
 });
 
@@ -684,6 +684,67 @@ describe('actions', () => {
     expect(document.querySelector('.ant-card-head button')?.getAttribute('aria-label')).toBe('返回');
     await screen.findByText('Ada');
     expect(screen.getAllByRole('button', { name: /返\s*回/ }).length).toBeGreaterThan(0);
+  });
+});
+
+describe('form mode', () => {
+  it('creates without an id', async () => {
+    const api = makeApi();
+    render(<SchemaCrudForm schema={schema} api={api} mode="form" />);
+
+    expect(screen.getByText('新建记录')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('姓名'), { target: { value: 'Ada' } });
+    fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }));
+
+    await waitFor(() => expect(api.create).toHaveBeenCalledTimes(1));
+    expect(api.create).toHaveBeenCalledWith({ name: 'Ada', status: 'active' });
+  });
+
+  it('edits directly with an id and stays in edit after save', async () => {
+    const api = makeApi();
+    api.show
+      .mockResolvedValueOnce({ id: 7, name: 'Ada', status: 'active' })
+      .mockResolvedValueOnce({ id: 7, name: 'Grace', status: 'active' });
+    render(<SchemaCrudForm schema={schema} api={api} id={7} mode="form" />);
+
+    await screen.findByText('编辑记录');
+    const input = await screen.findByLabelText('姓名');
+    await waitFor(() => expect(input).toHaveValue('Ada'));
+    expect(screen.queryByRole('button', { name: /编\s*辑/ })).not.toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'Grace' } });
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+
+    await waitFor(() => expect(api.update).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(api.show).toHaveBeenCalledTimes(2));
+    expect(screen.getByText('编辑记录')).toBeInTheDocument();
+    expect(screen.queryByText('记录详情')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText('姓名')).toHaveValue('Grace'));
+  });
+
+  it('leaves through onBack on cancel instead of switching to view', async () => {
+    const api = makeApi();
+    const onBack = vi.fn();
+    render(<SchemaCrudForm schema={schema} api={api} id={7} mode="form" onBack={onBack} />);
+
+    await waitFor(() => expect(screen.getByLabelText('姓名')).toHaveValue('Ada'));
+    fireEvent.click(screen.getByRole('button', { name: /取\s*消/ }));
+
+    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('记录详情')).not.toBeInTheDocument();
+  });
+
+  it('leaves through onBack after deleting', async () => {
+    const api = makeApi();
+    const onBack = vi.fn();
+    render(<SchemaCrudForm schema={schema} api={api} id={7} mode="form" onBack={onBack} />);
+
+    await waitFor(() => expect(screen.getByLabelText('姓名')).toHaveValue('Ada'));
+    fireEvent.click(screen.getByRole('button', { name: /删\s*除/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /确\s*定/ }));
+
+    await waitFor(() => expect(api.destroy).toHaveBeenCalledWith({ id: 7 }));
+    expect(onBack).toHaveBeenCalledTimes(1);
   });
 });
 

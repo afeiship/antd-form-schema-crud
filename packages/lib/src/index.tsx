@@ -22,6 +22,7 @@ export type {
 export type { ApiRequirement } from './api';
 export type {
   CrudMode,
+  CrudFormMode,
   CrudId,
   CrudAction,
   CrudRecord,

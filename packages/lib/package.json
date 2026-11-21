@@ -61,7 +61,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@jswork/antd-form-schema": "^1.0.2",
+    "@jswork/antd-form-schema": "^1.0.3",
     "fast-deep-equal": "^3.1.3"
   }
 }
