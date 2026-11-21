@@ -24,7 +24,7 @@ export default defineConfig({
   esbuildPlugins: [
     // CSS compiled with Lightning CSS in the same build (minify + targets + nesting)
     lightningCssPlugin({
-      entry: 'src/style.css',
+      entry: 'src/styles/index.css',
       outFile: 'style.css',
     }),
   ],

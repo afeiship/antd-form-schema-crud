@@ -1,5 +1,7 @@
-export { SchemaCrud } from './schema-crud';
-export { resolveApi, checkRequirement, errorMessage, getNxApi } from './resolve-api';
+export { default } from './components/schema-crud';
+export { SchemaCrud, AntdFormSchemaCrud } from './components/schema-crud';
+export { resolveApi, checkRequirement, errorMessage, getNxApi } from './api';
+export type { ApiRequirement } from './api';
 export type {
   CrudMode,
   CrudId,
@@ -12,10 +14,3 @@ export type {
   CrudFormProps,
   SchemaCrudProps,
 } from './types';
-
-import { SchemaCrud } from './schema-crud';
-
-/** Backward-compatible alias; the previous default export name. */
-export const AntdFormSchemaCrud = SchemaCrud;
-
-export default SchemaCrud;
