@@ -1,45 +1,47 @@
-# rails-module-mvc
-> Rails module for basic model view controller.
+# antd-form-schema-crud
+> Ant Design resource CRUD driven by antd-form-schema and show/create/update/destroy APIs.
 
+[![version][version-image]][version-url]
+[![license][license-image]][license-url]
+[![download][download-image]][download-url]
 
-## step by step:
-+ [routes]:add below to routes.rb
-```ruby
-root :to => 'page#welcome'
-```
-+ [controller]:add page_controller.rb && add `welcome` action;
+## installation
 ```shell
-rails g controller page welcome
+pnpm add @jswork/antd-form-schema-crud
 ```
 
-+ [view]:add page/welcome.html.erb view:
-```html
-<h1>Welcome!</h1>
-```
+## usage
+  ```js
+  import AntdFormSchemaCrud from '@jswork/antd-form-schema-crud';
+  import '@jswork/antd-form-schema-crud/style.css';
 
-+ [issue]:add issue model to db:
-```shell
-rails g model Issue title:string content:string
-rake db:create db:migrate
-```
+  function App() {
+    return (
+      <div className="m-10 p-4 shadow bg-gray-100 text-gray-800 hover:shadow-md transition-all">
+        <div className="badge badge-warning absolute right-0 top-0 m-4">
+          Build Time: {BUILD_TIME}
+        </div>
+        <AntdFormSchemaCrud className="debug-red">
+          abc
+        </AntdFormSchemaCrud>
+      </div>
+    );
+  }
 
-+ [seeds.rb]add seed data.
-```ruby
-# seeds.rb
-Issue.create(
-  [
-    {
-      title:'My first post title',
-      content:'My first post contnet is herre.'
-    },
-    {
-      title:'My second post title',
-      content:'My second post contnet is herre.'
-    }
-  ]
-)
-```
+  export default App;
+  ```
 
-```shell
-rake db:seed
-```
+## preview
+- https://afeiship.github.io/antd-form-schema-crud/
+
+## license
+Code released under [the MIT license](https://github.com/afeiship/antd-form-schema-crud/blob/master/LICENSE.txt).
+
+[version-image]: https://img.shields.io/npm/v/@jswork/antd-form-schema-crud
+[version-url]: https://npmjs.org/package/@jswork/antd-form-schema-crud
+
+[license-image]: https://img.shields.io/npm/l/@jswork/antd-form-schema-crud
+[license-url]: https://github.com/afeiship/antd-form-schema-crud/blob/master/LICENSE.txt
+
+[download-image]: https://img.shields.io/npm/dm/@jswork/antd-form-schema-crud
+[download-url]: https://www.npmjs.com/package/@jswork/antd-form-schema-crud
