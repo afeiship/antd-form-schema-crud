@@ -23,7 +23,6 @@ export function renderFooterAction(
   const { text, props: extraProps } = config ?? {};
   return (
     <Button
-      key={name}
       {...defaults.props}
       {...extraProps}
       onClick={(event) => {

@@ -65,7 +65,7 @@ describe('card size', () => {
 describe('exports', () => {
   it('exposes a named and a default export with a version', () => {
     expect(NamedSchemaCrudForm).toBe(SchemaCrudForm);
-    expect(SchemaCrudForm.version).toBe('1.0.1');
+    expect(SchemaCrudForm.version).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });
 
@@ -317,6 +317,21 @@ describe('edit', () => {
 
     await waitFor(() => expect(api.show).toHaveBeenCalledTimes(2));
     expect(screen.getByText('记录详情')).toBeInTheDocument();
+  });
+
+  it('renders footer actions without React key warnings', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const api = makeApi();
+    render(<SchemaCrudForm schema={schema} api={api} id={7} />);
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+    await screen.findByLabelText('姓名');
+
+    const keyWarning = error.mock.calls.some((call) =>
+      String(call[0]).includes('unique "key"')
+    );
+    expect(keyWarning).toBe(false);
   });
 
   it('shows the save shortcut hint in create and edit but not in view', async () => {

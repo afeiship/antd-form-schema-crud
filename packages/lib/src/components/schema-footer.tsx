@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowLeftOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
 import { CLASS_NAME } from '../constants';
@@ -70,6 +71,7 @@ export function SchemaFooter({
   const remove =
     hasDestroy && (mode === 'edit' || mode === 'view') ? (
       <FooterDeleteAction
+        key="delete"
         actions={actions}
         deleteLoading={deleteLoading}
         busy={busy}
@@ -88,15 +90,19 @@ export function SchemaFooter({
       : null;
 
   const buttons: ReactNode[] = [];
-  if (remove) buttons.push(remove);
-  if (cancel) buttons.push(cancel);
+  const push = (key: string, node: ReactNode) => {
+    if (node) buttons.push(<Fragment key={key}>{node}</Fragment>);
+  };
+
+  push('delete', remove);
+  push('cancel', cancel);
 
   if (mode === 'create') {
-    if (save) buttons.push(save);
+    push('save', save);
   } else if (mode === 'edit') {
-    if (save) buttons.push(save);
-  } else if (edit) {
-    buttons.push(edit);
+    push('save', save);
+  } else {
+    push('edit', edit);
   }
 
   if (buttons.length === 0) return null;
