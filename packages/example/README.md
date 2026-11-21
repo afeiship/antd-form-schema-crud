@@ -19,15 +19,15 @@ VITE_API_TOKEN=your-token
 
 ## 接口约定
 
-`src/api/posts.ts` 把真实接口注册成 `nx.$api` 的命名约定：
+`src/api/posts.ts` 按 `jsw-admin/src/shared/services/schema.ts` 的 `resources` 约定（Rails 模板）注册成 `nx.$api`：
 
-| 方法            | 请求                                            |
-| --------------- | ----------------------------------------------- |
-| `posts_show`    | `GET /api/posts/:id`                            |
-| `posts_create`  | `POST /api/posts`，body `{ post: values }`      |
-| `posts_update`  | `PATCH /api/posts/:id`，body `{ post: values }` |
-| `posts_destroy` | `DELETE /api/posts/:id`                         |
-| `posts_index`   | `GET /api/posts?page=1&size=20`                 |
+| 方法            | 请求                                          |
+| --------------- | --------------------------------------------- |
+| `posts_show`    | `GET /api/posts/:id`                          |
+| `posts_create`  | `POST /api/posts`，body `{ post: values }`    |
+| `posts_update`  | `PUT /api/posts/:id`，body `{ post: values }` |
+| `posts_destroy` | `DELETE /api/posts/:id`                       |
+| `posts_index`   | `GET /api/posts?page=1&size=20`               |
 
 `SchemaCrud` 只给 `resource="posts"`，由组件自动解析其余四个方法：
 

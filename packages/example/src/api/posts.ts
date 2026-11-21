@@ -26,11 +26,20 @@ interface ApiEnvelope<T> {
   error?: { message?: string };
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? '';
+/** Mirrors jsw-admin/src/shared/services/schema.ts for the posts resource. */
+export const postsSchema = {
+  baseURL: import.meta.env.VITE_API_URL ?? '',
+  request: ['/api', 'json'] as const,
+  resources: ['posts'] as const,
+};
+
+const API_PREFIX = postsSchema.request[0];
+const RESOURCE = postsSchema.resources[0];
 const TOKEN = import.meta.env.VITE_API_TOKEN ?? '';
+const resourceUrl = (path = '') => `${postsSchema.baseURL}${API_PREFIX}/${RESOURCE}${path}`;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(path, {
     ...init,
     headers: {
       'Accept': 'application/json',
@@ -62,24 +71,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
  */
 export const postsApi = {
   posts_index: (params: { page?: number; size?: number } = {}) =>
-    request<PostList>(`/api/posts?page=${params.page ?? 1}&size=${params.size ?? 20}`),
+    request<PostList>(`${resourceUrl()}?page=${params.page ?? 1}&size=${params.size ?? 20}`),
 
-  posts_show: ({ id }: { id: CrudId }) => request<PostRecord>(`/api/posts/${id}`),
+  posts_show: ({ id }: { id: CrudId }) => request<PostRecord>(resourceUrl(`/${id}`)),
 
   posts_create: (values: CrudValues) =>
-    request<PostRecord>('/api/posts', {
+    request<PostRecord>(resourceUrl(), {
       method: 'POST',
       body: JSON.stringify({ post: values }),
     }),
 
   posts_update: ({ id, ...values }: CrudValues & { id: CrudId }) =>
-    request<PostRecord>(`/api/posts/${id}`, {
-      method: 'PATCH',
+    request<PostRecord>(resourceUrl(`/${id}`), {
+      method: 'PUT',
       body: JSON.stringify({ post: values }),
     }),
 
   posts_destroy: ({ id }: { id: CrudId }) =>
-    request<unknown>(`/api/posts/${id}`, { method: 'DELETE' }),
+    request<unknown>(resourceUrl(`/${id}`), { method: 'DELETE' }),
 };
 
 (globalThis as unknown as { nx: { $api: typeof postsApi } }).nx = { $api: postsApi };
