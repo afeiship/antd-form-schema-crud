@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { CrudValues } from '../types';
-import { deepEqual } from '../utils/deep-equal';
+import deepEqual from 'fast-deep-equal';
 
 /**
  * Tracks whether edit-mode form values differ from the loaded baseline.

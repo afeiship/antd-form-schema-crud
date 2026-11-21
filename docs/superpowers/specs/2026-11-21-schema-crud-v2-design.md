@@ -326,7 +326,7 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 
 - 创建态不做未保存判断，创建按钮始终可用。
 
-实现使用内部工具 `deepEqual`，只处理 JSON 值（对象、数组、原始值、Date），不引入 `fast-deep-equal` 或 lodash。
+使用 `fast-deep-equal` 做未保存判断，与参考项目行为一致。
 
 ### 加载与错误
 
@@ -427,7 +427,7 @@ onSuccess({ action: 'create', result, values });
 
 - `antd` 保持 peer dependency。
 - 新增 `@ant-design/icons` peer dependency，用于返回 / 保存 / 编辑 / 删除图标。
-- 未保存判断使用内部 `deepEqual`，不新增深比较依赖。
+- 新增 `fast-deep-equal` 依赖，用于未保存判断。
 - 不新增路由、请求、i18n 依赖。
 
 ## 示例改造
@@ -531,6 +531,6 @@ const handleSuccess = async (event: CrudSuccessEvent) => {
 
 3. 删除成功后未受控模式自动进入 create 是否合适，还是应保持当前 view 等业务切换？
 
-4. 是否接受新增 `@ant-design/icons` peer dependency？
+4. 已确认：新增 `@ant-design/icons` peer dependency 和 `fast-deep-equal` 依赖。
 
 5. 受控 `mode` 是否真的需要保留，还是只保留 `defaultMode` 即可覆盖路由场景？

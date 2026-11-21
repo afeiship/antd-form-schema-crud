@@ -19,6 +19,7 @@ export default defineConfig({
     '@ant-design/icons',
     '@jswork/antd-form-schema',
     'classnames',
+    'fast-deep-equal',
   ],
 
   // react
