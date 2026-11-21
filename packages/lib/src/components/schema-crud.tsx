@@ -34,7 +34,6 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
     onError,
     formProps,
     className,
-    style,
   } = props;
 
   const { mode, setMode } = useCrudMode({
@@ -160,7 +159,6 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
     <Card
       data-component={CLASS_NAME}
       className={cx(CLASS_NAME, className)}
-      style={style}
       title={titleNode}
       extra={extraNode}
       aria-busy={loading || undefined}

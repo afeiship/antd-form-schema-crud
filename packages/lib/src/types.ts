@@ -1,4 +1,4 @@
-import type { ReactNode, CSSProperties, ComponentProps } from 'react';
+import type { ReactNode, ComponentProps } from 'react';
 import type { ButtonProps } from 'antd';
 import type { FormSchema, SchemaForm } from '@jswork/antd-form-schema';
 
@@ -76,5 +76,4 @@ export interface SchemaCrudProps<TRecord = CrudRecord> {
   onError?: (error: unknown, action: CrudAction) => void;
 
   className?: string;
-  style?: CSSProperties;
 }
