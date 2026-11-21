@@ -72,6 +72,7 @@ describe('list basics', () => {
     const refreshButton = screen.getByRole('button', { name: /刷\s*新/ });
     expect(createButton).toHaveClass('ant-btn-sm');
     expect(refreshButton).toHaveClass('ant-btn-sm');
+    expect(document.querySelector('.ant-table-small')).toBeInTheDocument();
   });
 
   it('hides a derived column through presets.hidden', async () => {

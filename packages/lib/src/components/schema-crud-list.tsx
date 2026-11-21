@@ -170,7 +170,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
           <Table<TRecord>
             {...restTableProps}
             bordered={restTableProps.bordered ?? true}
-            size={restTableProps.size ?? 'middle'}
+            size={restTableProps.size ?? 'small'}
             columns={resolvedColumns}
             dataSource={rows}
             rowKey={rowKeyProp}

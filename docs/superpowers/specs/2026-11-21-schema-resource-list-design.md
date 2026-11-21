@@ -37,7 +37,7 @@
 - 根容器是 `Card`，标题在 `Card.title`，动作在 `Card.extra`。
 - 固定调用 `{resource}_index`，payload 包含 `{ page, size }`。
 - 响应固定 `{ rows, total }`。
-- 表格默认 `bordered`、`size="middle"`，服务端分页。
+- 表格默认 `bordered`、`size="small"`，服务端分页。
 - 卡片头部有新建、刷新、返回这类资源级动作。
 - 行内可以有编辑、删除操作。
 
@@ -347,7 +347,7 @@ Card 内容：
 - 首次加载使用 `Card.loading` 骨架；翻页、刷新等后续请求使用 Table 自身 `loading`。
 - 加载失败显示 `Alert + 重试`。
 - 空数据走 Ant Design 默认空状态。
-- 表格默认 `bordered`、`size="middle"`。
+- 表格默认 `bordered`、`size="small"`。
 - 分页固定服务端模式：`current`、`pageSize`、`total`，默认显示 pageSize changer。
 
 ### 列

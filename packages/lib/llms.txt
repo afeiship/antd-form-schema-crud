@@ -80,7 +80,7 @@ Presets only decorate existing schema fields; they never add columns. `hidden: t
 
 ## Defaults
 
-- List: pageSize 10, rowKey 'id', confirmDelete true, bordered table, size middle.
+- List: pageSize 10, rowKey 'id', confirmDelete true, bordered table, size small.
 - Delete success: reload; if current page becomes empty and page > 1, go back one page.
 - Form success: single `onSuccess(event)` with action create / update / delete.
 

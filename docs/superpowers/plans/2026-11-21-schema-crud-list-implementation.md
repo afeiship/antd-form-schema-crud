@@ -109,7 +109,7 @@
 
 1. `Card` 根，标题 `${title}列表`。
 2. `Card.extra` 放新建、刷新、返回。
-3. 首次加载用 `Card.loading`，后续请求用 Table 自身 `loading`，默认 `bordered`、`size="middle"`。
+3. 首次加载用 `Card.loading`，后续请求用 Table 自身 `loading`，默认 `bordered`、`size="small"`。
 4. 服务端分页。
 5. 加载失败 `Alert + 重试`。
 6. 编辑、删除动作按 `actions` 开关。
