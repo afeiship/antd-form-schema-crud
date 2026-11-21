@@ -5,7 +5,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import type { FormSchema } from '@jswork/antd-form-schema';
-import SchemaCrud, { SchemaCrud as NamedSchemaCrud } from '../src';
+import SchemaCrud, {
+  SchemaCrud as NamedSchemaCrud,
+  configureSchemaCrud,
+  getSchemaCrudDefaults,
+  resetSchemaCrudDefaults,
+} from '../src';
 import { checkRequirement, errorMessage, resolveApi } from '../src';
 import type { CrudSuccessEvent } from '../src';
 
@@ -33,6 +38,7 @@ const makeApi = () => ({
 });
 
 afterEach(() => {
+  resetSchemaCrudDefaults();
   vi.restoreAllMocks();
   delete (globalThis as any).nx;
 });
@@ -41,6 +47,54 @@ describe('exports', () => {
   it('exposes a named and a default export with a version', () => {
     expect(NamedSchemaCrud).toBe(SchemaCrud);
     expect(SchemaCrud.version).toBe('2.0.0');
+  });
+});
+
+describe('project defaults', () => {
+  it('applies title, action copy and form props defaults to instances', async () => {
+    const api = makeApi();
+    configureSchemaCrud({
+      title: '用户',
+      actions: { save: { text: '提交' }, delete: { text: '移除' } },
+      formProps: { layout: 'horizontal' },
+    });
+    render(<SchemaCrud schema={schema} api={api} id={7} />);
+
+    expect(screen.getByText('用户详情')).toBeInTheDocument();
+    await screen.findByText('Ada');
+    expect(screen.getByRole('button', { name: /移\s*除/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /编\s*辑/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+    expect(await screen.findByLabelText('姓名')).toBeInTheDocument();
+    expect(document.querySelector('.ant-form-horizontal')).toBeInTheDocument();
+  });
+
+  it('lets instance props override global defaults', () => {
+    const api = makeApi();
+    configureSchemaCrud({ title: '用户', confirmDelete: false });
+    render(
+      <SchemaCrud
+        schema={schema}
+        api={api}
+        title="文章"
+        confirmDelete
+        actions={{ save: { text: '保存草稿' } }}
+      />
+    );
+
+    expect(screen.getByText('新建文章')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /保存草稿/ })).toBeInTheDocument();
+  });
+
+  it('returns a copy and resets project defaults', () => {
+    configureSchemaCrud({ title: '用户', actions: { save: { text: '提交' } } });
+    const snapshot = getSchemaCrudDefaults();
+    expect(snapshot.title).toBe('用户');
+    snapshot.actions!.save = { text: '被改掉' };
+    expect(getSchemaCrudDefaults().actions!.save).toEqual({ text: '提交' });
+
+    resetSchemaCrudDefaults();
+    expect(getSchemaCrudDefaults()).toEqual({});
   });
 });
 

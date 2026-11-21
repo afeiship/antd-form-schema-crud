@@ -7,6 +7,7 @@ import { SchemaForm } from '@jswork/antd-form-schema';
 import type { FormSchema } from '@jswork/antd-form-schema';
 import { checkRequirement, errorMessage, resolveApi } from '../api';
 import { CLASS_NAME } from '../constants';
+import { getSchemaCrudDefaults } from '../defaults';
 import { useCrudMode } from '../hooks/use-crud-mode';
 import { useDirtyState } from '../hooks/use-dirty-state';
 import { useLatest } from '../hooks/use-latest';
@@ -34,7 +35,7 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
     title,
     extra,
     actions,
-    confirmDelete = true,
+    confirmDelete,
     onSuccess,
     onBack,
     onModeChange,
@@ -49,6 +50,15 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
     id,
     onModeChange,
   });
+
+  const projectDefaults = getSchemaCrudDefaults();
+  const resolvedActions =
+    projectDefaults.actions && actions
+      ? { ...projectDefaults.actions, ...actions }
+      : (actions ?? projectDefaults.actions);
+  const resolvedFormProps = { ...projectDefaults.formProps, ...formProps };
+  const resolvedConfirmDelete = confirmDelete ?? projectDefaults.confirmDelete ?? true;
+  const resolvedTitle = title === undefined ? projectDefaults.title : title;
 
   const resolvedApi = useMemo(() => resolveApi<TRecord>(api, resource), [api, resource]);
   const requirement = checkRequirement(mode, resolvedApi, resource, id);
@@ -121,7 +131,7 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
     layout = 'vertical',
     onValuesChange: userOnValuesChange,
     ...restFormProps
-  } = formProps ?? {};
+  } = resolvedFormProps;
 
   const handleFormReady = useCallback(
     (form: FormInstance) => {
@@ -235,8 +245,8 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
   const handleRetry = useCallback(() => setReloadVersion((value) => value + 1), []);
   const handleSubmit = useCallback(() => formRef.current?.submit(), []);
 
-  const canCancel = actions?.cancel !== false && (mode === 'edit' || Boolean(onBack));
-  const subject = title === false ? null : (title ?? '记录');
+  const canCancel = resolvedActions?.cancel !== false && (mode === 'edit' || Boolean(onBack));
+  const subject = resolvedTitle === false ? null : (resolvedTitle ?? '记录');
   const titleText =
     mode === 'view' ? (
       <>{subject}详情</>
@@ -273,7 +283,7 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
     <footer className={`${CLASS_NAME}__footer`}>
       <SchemaFooter
         mode={mode}
-        actions={actions}
+        actions={resolvedActions}
         hasDestroy={Boolean(resolvedApi.destroy)}
         submitLoading={submitLoading}
         deleteLoading={deleteLoading}
@@ -281,7 +291,7 @@ function SchemaCrudRender<TRecord extends CrudRecord = CrudRecord>(
         dirty={dirty}
         available={available}
         canCancel={canCancel}
-        confirmDelete={confirmDelete}
+        confirmDelete={resolvedConfirmDelete}
         onCancel={handleCancel}
         onEdit={handleEdit}
         onDelete={handleDelete}

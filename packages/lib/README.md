@@ -27,3 +27,30 @@ pnpm add @jswork/antd-form-schema-crud
 - 创建默认值写在 `schema.initialValues`，提交前转换写在 `schema.normalizeValues`。
 - 成功回调统一为 `onSuccess(event)`，按 `event.action` 区分 `create / update / delete`。
 - 需要受控模式时传 `mode`，并通过 `onModeChange` 同步。
+
+## Project defaults
+
+`configureSchemaCrud` 设置项目级默认值，实例 props 优先：
+
+```ts
+import {
+  configureSchemaCrud,
+  getSchemaCrudDefaults,
+  resetSchemaCrudDefaults,
+} from '@jswork/antd-form-schema-crud';
+
+configureSchemaCrud({
+  title: '文章',
+  confirmDelete: false,
+  actions: {
+    save: { text: '提交' },
+    delete: { text: '移除' },
+  },
+  formProps: { layout: 'horizontal' },
+});
+```
+
+- 当前支持 `title`、`confirmDelete`、`actions`、`formProps`。
+- `actions` 和 `formProps` 会和实例上的同名 prop 浅合并，实例优先。
+- `getSchemaCrudDefaults()` 返回当前默认值的副本。
+- `resetSchemaCrudDefaults()` 清空默认值，主要用于测试或应用卸载。
