@@ -52,6 +52,8 @@ Route-backed pagination: pass controlled `page` and write it back in `onPageChan
 
 `id` absent => create. `id` present => view by default; internal edit switch. Controlled mode: pass `mode` and `onModeChange`.
 
+Footer toolbar: delete on the left; cancel/back and the primary action grouped on the right. It has a top border and a light background.
+
 Form defaults: `layout="horizontal"`, `labelCol={{ flex: '120px' }}`, `wrapperCol={{ flex: 1 }}`. Override through `formProps`. Navigation lives only in the footer; `Card.extra` is caller-owned content.
 
 ## List presets

@@ -196,6 +196,11 @@
 - 增加 `ListPresetField.hidden`，只影响 schema 推导列。
 - 示例用 `is_sticky: { hidden: true }` 去掉置顶列。
 
+## 阶段 6.5：底部工具栏
+
+- footer 改为独立工具栏：上边框、浅灰背景、贴合 Card 底部。
+- create 的取消与创建统一靠右；删除保持左侧。
+
 ## 阶段 7：收尾
 
 任务：

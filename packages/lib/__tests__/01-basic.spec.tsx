@@ -508,7 +508,9 @@ describe('actions', () => {
     const onBack = vi.fn();
     const { rerender } = render(<SchemaCrudForm schema={schema} api={api} onBack={onBack} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /取\s*消/ }));
+    const cancel = screen.getByRole('button', { name: /取\s*消/ });
+    expect(cancel.closest('.antd-form-schema-crud__footer-right')).not.toBeNull();
+    fireEvent.click(cancel);
     expect(onBack).toHaveBeenCalledTimes(1);
 
     rerender(<SchemaCrudForm schema={schema} api={api} id={7} onBack={onBack} />);
@@ -517,7 +519,7 @@ describe('actions', () => {
     expect(onBack).toHaveBeenCalledTimes(2);
   });
 
-  it('renders custom extra and the built-in back button', async () => {
+  it('renders custom extra and keeps navigation in the footer', async () => {
     const api = makeApi();
     render(
       <SchemaCrudForm
@@ -529,6 +531,7 @@ describe('actions', () => {
       />
     );
     expect(screen.getByText('帮助')).toBeInTheDocument();
+    expect(document.querySelector('.ant-card-head button')).toBeNull();
     await screen.findByText('Ada');
     expect(screen.getAllByRole('button', { name: /返\s*回/ }).length).toBeGreaterThan(0);
   });

@@ -132,7 +132,7 @@ export function SchemaFooter({
   const right: ReactNode[] = [];
 
   if (mode === 'create') {
-    if (cancel) left.push(cancel);
+    if (cancel) right.push(cancel);
     if (save) right.push(save);
   } else if (mode === 'edit') {
     if (remove) left.push(remove);
