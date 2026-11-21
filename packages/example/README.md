@@ -29,23 +29,37 @@ VITE_API_TOKEN=your-token
 | `posts_destroy` | `DELETE /api/posts/:id`                       |
 | `posts_index`   | `GET /api/posts?page=1&size=20`               |
 
-`SchemaCrud` 只给 `resource="posts"`，由组件自动解析其余四个方法：
+`SchemaCrud` 只给 `resource="posts"`，由组件自动解析其余四个方法。不传 `mode` 时，`id` 为空进入新建，有值进入详情，详情里的“编辑”由组件内部切换：
 
 ```tsx
 <SchemaCrud
-  mode={mode}
-  schema={schema}
   resource="posts"
+  schema={postSchema}
   id={activeId}
-  onCreated={handleCreated}
-  onUpdated={handleUpdated}
-  onDeleted={handleDeleted}
+  title="文章"
+  extra={extra}
+  onSuccess={handleSuccess}
+  onBack={() => setActiveId(records[0]?.id)}
+  onError={handleError}
 />
+```
+
+创建默认值和提交前 trim 都写在 schema 上：
+
+```ts
+const postSchema: FormSchema = {
+  initialValues: { status: 'draft', is_sticky: false },
+  normalizeValues: (values) => ({
+    ...values,
+    title: String(values.title ?? '').trim(),
+  }),
+  fields: [...],
+};
 ```
 
 ## 演示内容
 
-- 左侧下拉切换文章，右侧切换预览 / 编辑 / 新建。
+- 标题栏下拉切换文章，右侧“新建”进入创建；详情页的“编辑”由组件内部切换。
 - 预览态用 `Descriptions` 展示，编辑态用 `SchemaForm`，新建态自动带默认 `status: draft`。
-- 保存、删除成功后重新拉列表并刷新当前记录。
-- 接口错误通过 `errorMessage` 统一转成可读文案。
+- 保存成功后组件重新拉取当前记录；删除成功后回到新建或下一条记录。
+- 单个 `onSuccess(event)` 按 `event.action` 处理创建、保存、删除；错误通过 `errorMessage` 统一转成可读文案。

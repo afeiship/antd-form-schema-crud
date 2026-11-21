@@ -1,29 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, App as AntdApp, Card, Spin } from 'antd';
-import { errorMessage } from '@jswork/antd-form-schema-crud';
-import type { CrudId, CrudMode, SchemaCrudProps } from '@jswork/antd-form-schema-crud';
+import { Alert, App as AntdApp, Button, Card, Select, Space, Spin } from 'antd';
+import { SchemaCrud, errorMessage } from '@jswork/antd-form-schema-crud';
+import type { CrudId, CrudSuccessEvent, SchemaCrudProps } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
 import { PageHeader } from './components/page-header';
-import { PostSchemaCrud } from './components/post-schema-crud';
 import { PostSummary } from './components/post-summary';
+import { postSchema } from './schema';
 import { usePostList } from './use-post-list';
 
 type HandleError = NonNullable<SchemaCrudProps['onError']>;
 
 export function PostsPage() {
   const { message } = AntdApp.useApp();
-  const [mode, setMode] = useState<CrudMode>('view');
   const [activeId, setActiveId] = useState<CrudId>();
-  const [refresh, setRefresh] = useState(0);
   const { records, total, loading, listError, loadList, loadInitial } = usePostList();
 
   useEffect(() => {
-    if (loading || listError) return;
-    if (records.length === 0) {
-      setActiveId(undefined);
-      setMode('create');
-      return;
-    }
+    if (loading || listError || records.length === 0) return;
     setActiveId((current) =>
       records.some((item) => item.id === current) ? current : records[0].id
     );
@@ -38,43 +31,18 @@ export function PostsPage() {
     [records]
   );
 
-  const handleCreated = async (result: unknown) => {
-    const record = result as PostRecord;
+  const handleSuccess = async (event: CrudSuccessEvent) => {
     try {
       const rows = await loadList();
-      setActiveId(record.id ?? rows[0]?.id);
-      setMode('view');
-      setRefresh((value) => value + 1);
-      message.success('创建成功');
-    } catch (error) {
-      message.error(errorMessage(error, '列表刷新失败，请手动刷新。'));
-    }
-  };
-
-  const handleUpdated = async () => {
-    try {
-      await loadList();
-      setMode('view');
-      setRefresh((value) => value + 1);
-      message.success('保存成功');
-    } catch (error) {
-      message.error(errorMessage(error, '列表刷新失败，请手动刷新。'));
-    }
-  };
-
-  const handleDeleted = async () => {
-    try {
-      const rows = await loadList();
-      const next = rows[0];
-      if (next) {
-        setActiveId(next.id);
-        setMode('view');
+      if (event.action === 'create') {
+        setActiveId((event.result as PostRecord).id ?? rows[0]?.id);
+        message.success('创建成功');
+      } else if (event.action === 'delete') {
+        setActiveId(rows[0]?.id);
+        message.success('删除成功');
       } else {
-        setActiveId(undefined);
-        setMode('create');
+        message.success('保存成功');
       }
-      setRefresh((value) => value + 1);
-      message.success('删除成功');
     } catch (error) {
       message.error(errorMessage(error, '列表刷新失败，请手动刷新。'));
     }
@@ -85,26 +53,33 @@ export function PostsPage() {
     message.error(errorMessage(error, '操作失败，请重试。'));
   };
 
-  const selectRecord = (id: CrudId) => {
-    setActiveId(id);
-    setMode('view');
-  };
-
-  const changeMode = (nextMode: CrudMode) => {
-    setMode(nextMode);
-  };
+  const extra = (
+    <Space wrap>
+      <Select
+        style={{ width: 260 }}
+        value={activeId}
+        options={options}
+        disabled={records.length === 0}
+        placeholder="选择文章"
+        onChange={(id) => setActiveId(id)}
+      />
+      <Button onClick={() => setActiveId(undefined)}>新建</Button>
+    </Space>
+  );
 
   return (
     <div className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto max-w-4xl">
         <PageHeader />
 
-        <Card>
-          {loading ? (
+        {loading ? (
+          <Card>
             <div className="flex min-h-40 items-center justify-center">
               <Spin />
             </div>
-          ) : listError ? (
+          </Card>
+        ) : listError ? (
+          <Card>
             <Alert
               type="error"
               showIcon
@@ -120,22 +95,19 @@ export function PostsPage() {
                 </button>
               }
             />
-          ) : (
-            <PostSchemaCrud
-              activeId={activeId}
-              mode={mode}
-              options={options}
-              recordsCount={records.length}
-              refresh={refresh}
-              onSelect={selectRecord}
-              onModeChange={changeMode}
-              onCreated={handleCreated}
-              onUpdated={handleUpdated}
-              onDeleted={handleDeleted}
-              onError={handleError}
-            />
-          )}
-        </Card>
+          </Card>
+        ) : (
+          <SchemaCrud
+            resource="posts"
+            schema={postSchema}
+            id={activeId}
+            title="文章"
+            extra={extra}
+            onSuccess={handleSuccess}
+            onBack={() => setActiveId(activeId === undefined ? records[0]?.id : undefined)}
+            onError={handleError}
+          />
+        )}
 
         {!loading && !listError ? <PostSummary records={records} total={total} /> : null}
       </div>

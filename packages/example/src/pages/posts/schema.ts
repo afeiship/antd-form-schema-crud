@@ -1,8 +1,16 @@
 import type { FormSchema } from '@jswork/antd-form-schema';
-import type { CrudMode } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
 
 export const postSchema: FormSchema = {
+  initialValues: {
+    status: 'draft',
+    is_sticky: false,
+  },
+  normalizeValues: (values) => ({
+    ...values,
+    title: String(values.title ?? '').trim(),
+    subtitle: String(values.subtitle ?? '').trim(),
+  }),
   fields: [
     {
       key: 'title',
@@ -35,12 +43,6 @@ export const postSchema: FormSchema = {
       widget: 'switch',
     },
   ],
-};
-
-export const MODE_TITLES: Record<CrudMode, string> = {
-  view: '文章详情',
-  edit: '编辑文章',
-  create: '新建文章',
 };
 
 export const STATUS_TEXT: Record<PostRecord['status'], string> = {
