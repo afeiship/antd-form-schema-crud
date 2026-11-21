@@ -6,6 +6,5 @@ export const postListPresets: ListPresets = {
     title: { title: '标题', width: 240 },
     subtitle: { title: '副标题', ellipsis: true },
     status: { title: '状态', width: 100, align: 'center' },
-    is_sticky: { hidden: true },
   },
 };

@@ -4,7 +4,7 @@ import { SchemaCrudForm, errorMessage } from '@jswork/antd-form-schema-crud';
 import type { CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
 import { PageHeader } from './components/page-header';
-import { postSchema } from './schema';
+import { postPageConfig } from './config';
 
 export function PostsCreatePage() {
   const navigate = useNavigate();
@@ -25,10 +25,10 @@ export function PostsCreatePage() {
           description="SchemaCrudForm 调用 nx.$api.posts_create。"
         />
         <SchemaCrudForm<PostRecord>
-          resource="posts"
-          schema={postSchema}
+          resource={postPageConfig.resource}
+          schema={postPageConfig.schema}
           mode="create"
-          title="文章"
+          title={postPageConfig.title}
           onSuccess={handleSuccess}
           onBack={() => navigate(`/posts${search}`)}
           onError={(error) => message.error(errorMessage(error, '创建失败，请重试。'))}

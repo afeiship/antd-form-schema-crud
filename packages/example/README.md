@@ -1,6 +1,6 @@
 # SchemaCrudForm / SchemaCrudList posts 示例
 
-用真实 Rails 接口演示 `@jswork/antd-form-schema-crud` 的完整多页面 CRUD：列表、新建、详情、编辑各是一个路由页面，共用一份 `FormSchema` 和一套 `nx.$api`。
+用真实 Rails 接口演示 `@jswork/antd-form-schema-crud` 的完整多页面 CRUD：列表、新建、详情、编辑各是一个路由页面，共用一份 `FormSchema`、一套 `nx.$api` 和一份 `postPageConfig`。
 
 ## 启动
 
@@ -48,17 +48,19 @@ VITE_API_TOKEN=your-token
 
 ```tsx
 <SchemaCrudList
-  resource="posts"
-  schema={postSchema}
-  presets={postListPresets}
-  title="文章"
+  resource={postPageConfig.resource}
+  schema={postPageConfig.schema}
+  fields={postPageConfig.list.fields}
+  presets={postPageConfig.list.presets}
+  title={postPageConfig.title}
   onCreate={() => navigate('/posts/new')}
   onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
 />
 ```
 
 - 服务端分页，默认 `page=1`、`size=10`。
-- `presets` 在 `list-presets.ts` 集中维护列标题、宽度和对齐。
+- `config.ts` 是每个业务自己的字段配置：`list.fields` 只放列表需要的列，`detail.fields` 放详情字段；两者可以不同。
+- `presets` 在 `list-presets.ts` 集中维护列标题、宽度和对齐；`fields` 控制出现哪些列。
 - 行内只有编辑和删除；点击整行不会跳转。
 - 行内删除带确认；删除当前页最后一条会回退一页。
 - 列表只负责列表，新建/详情/编辑靠路由跳转；列表不提供查看入口，从编辑页取消可回到详情。
@@ -66,7 +68,7 @@ VITE_API_TOKEN=your-token
 ## 表单
 
 - 新建页 `mode="create"`，成功后进入详情。
-- 详情页 `mode="view"`，点击编辑通过 `onModeChange` 跳到编辑页。
+- 详情页 `mode="view"`，`viewFields={postPageConfig.detail.fields}` 控制展示字段；点击编辑通过 `onModeChange` 跳到编辑页，编辑页使用完整 schema。
 - 编辑页 `mode="edit"`，取消编辑通过 `onModeChange` 回到列表。
 - 创建默认值和提交前 trim 都写在 `postSchema`：
 
@@ -90,6 +92,7 @@ src/pages/posts/
 ├── create.tsx         # 新建
 ├── detail.tsx         # 详情
 ├── edit.tsx           # 编辑
+├── config.ts          # 业务字段配置：resource / schema / list.fields / detail.fields
 ├── list-presets.ts    # 列展示 presets
 ├── schema.ts          # 表单 schema
 └── components/page-header.tsx

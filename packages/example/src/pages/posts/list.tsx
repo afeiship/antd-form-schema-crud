@@ -4,8 +4,7 @@ import { SchemaCrudList, errorMessage } from '@jswork/antd-form-schema-crud';
 import type { CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
 import { PageHeader } from './components/page-header';
-import { postListPresets } from './list-presets';
-import { postSchema } from './schema';
+import { postPageConfig } from './config';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -46,10 +45,11 @@ export function PostsListPage() {
         />
 
         <SchemaCrudList<PostRecord>
-          resource="posts"
-          schema={postSchema}
-          presets={postListPresets}
-          title="文章"
+          resource={postPageConfig.resource}
+          schema={postPageConfig.schema}
+          fields={postPageConfig.list.fields}
+          presets={postPageConfig.list.presets}
+          title={postPageConfig.title}
           page={page}
           pageSize={pageSize}
           onPageChange={handlePageChange}

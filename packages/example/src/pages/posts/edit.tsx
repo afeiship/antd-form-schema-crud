@@ -4,7 +4,7 @@ import { SchemaCrudForm, errorMessage } from '@jswork/antd-form-schema-crud';
 import type { CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
 import { PageHeader } from './components/page-header';
-import { postSchema } from './schema';
+import { postPageConfig } from './config';
 
 export function PostsEditPage() {
   const navigate = useNavigate();
@@ -29,11 +29,11 @@ export function PostsEditPage() {
           description="SchemaCrudForm 调用 nx.$api.posts_show / posts_update。"
         />
         <SchemaCrudForm<PostRecord>
-          resource="posts"
-          schema={postSchema}
+          resource={postPageConfig.resource}
+          schema={postPageConfig.schema}
           id={id}
           mode="edit"
-          title="文章"
+          title={postPageConfig.title}
           onModeChange={handleModeChange}
           onSuccess={handleSuccess}
           onBack={() => navigate(`/posts${search}`)}

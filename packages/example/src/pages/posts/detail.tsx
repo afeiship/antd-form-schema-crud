@@ -4,7 +4,7 @@ import { SchemaCrudForm, errorMessage } from '@jswork/antd-form-schema-crud';
 import type { CrudMode, CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
 import { PageHeader } from './components/page-header';
-import { postSchema } from './schema';
+import { postPageConfig } from './config';
 
 export function PostsDetailPage() {
   const navigate = useNavigate();
@@ -30,11 +30,12 @@ export function PostsDetailPage() {
           description="SchemaCrudForm 调用 nx.$api.posts_show / posts_destroy。"
         />
         <SchemaCrudForm<PostRecord>
-          resource="posts"
-          schema={postSchema}
+          resource={postPageConfig.resource}
+          schema={postPageConfig.schema}
           id={id}
           mode="view"
-          title="文章"
+          title={postPageConfig.title}
+          viewFields={postPageConfig.detail.fields}
           onModeChange={handleModeChange}
           onSuccess={handleSuccess}
           onBack={() => navigate(`/posts${search}`)}
