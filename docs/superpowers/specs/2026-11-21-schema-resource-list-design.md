@@ -39,7 +39,7 @@
 - 响应固定 `{ rows, total }`。
 - 表格默认 `bordered`、`size="middle"`，服务端分页。
 - 卡片头部有新建、刷新、返回这类资源级动作。
-- 行内可以有查看、编辑、删除操作。
+- 行内可以有编辑、删除操作。
 
 ### 不照搬
 
@@ -48,7 +48,7 @@
 - 不通过 `nx.$event` 跳转。
 - 不做 `paramsAdd`、`paramsEdit` 这类路由上下文参数。
 - 不把列定义拆成 `columns / columnsFields / columnsAction` 三套 prop。
-- 不内置路由，不依赖 `react-router`；跳转通过 `onCreate / onView / onEdit` 交给业务。
+- 不内置路由，不依赖 `react-router`；跳转通过 `onCreate / onEdit` 交给业务。
 
 ## 目标
 
@@ -57,7 +57,7 @@
 - 服务端分页由组件内部维护，业务只通过 `params` 传筛选条件。
 - 列可以由业务显式传入，也可以从 schema 字段自动推导。
 - 列支持 `presets`：按 key 统一标题、宽度、对齐、省略和固定列，和表单 presets 一样“定义一次，多处复用”。
-- 行内动作通过回调交给路由；组件不假设 Router 实现。
+- 行内编辑通过回调交给路由；组件不假设 Router 实现。
 - 删除支持两种入口：列表行内删除，或详情页 `SchemaCrudForm` 删除。
 - 列表加载、空数据、接口错误、分页请求竞态都有明确状态。
 - 示例使用 React Router，把列表、新建、详情、编辑四个页面串起来。
@@ -203,7 +203,6 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
   >;
 
   onCreate?: () => void;
-  onView?: (record: TRecord) => void;
   onEdit?: (record: TRecord) => void;
   /** 页码或每页条数变化时触发；包含筛选重置和删除回退。 */
   onPageChange?: (page: number, pageSize: number) => void;
@@ -263,13 +262,12 @@ const postListPresets = {
 `actions` 只控制“要不要显示”，回调决定“点了去哪”：
 
 - 新建按钮：`actions.create !== false` 且传了 `onCreate`。
-- 查看入口：`actions.view !== false` 且传了 `onView`。
 - 编辑入口：`actions.edit !== false` 且传了 `onEdit`。
 - 删除入口：`actions.delete !== false` 且解析到了 `destroy`。
 - 刷新按钮：`actions.refresh !== false`，默认显示。
 - 返回按钮：传了 `onBack`，默认显示。
 
-`actions.view = false` 时整行点击也关闭，避免出现“看不到查看按钮但点行仍跳转”的隐藏行为。
+列表不提供查看入口，也不响应整行点击；详情页只能从新建成功或编辑页返回进入。
 
 ### 默认值
 
@@ -290,7 +288,6 @@ const defaults = {
   title="文章"
   presets={postListPresets}
   onCreate={() => navigate('/posts/new')}
-  onView={(record) => navigate(`/posts/${record.id}`)}
   onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
   onBack={() => navigate('/')}
 />
@@ -324,7 +321,6 @@ nx.set(nx, '$api', {
   ]}
   rowKey="id"
   onCreate={() => navigate('/posts/new')}
-  onView={(record) => navigate(`/posts/${record.id}`)}
 />
 ```
 
@@ -368,7 +364,6 @@ Card 内容：
 
 不论哪种方式，最后都追加操作列：
 
-- 查看：调用 `onView(record)`。
 - 编辑：调用 `onEdit(record)`。
 - 删除：`Popconfirm` 后调用 `destroy`，成功后刷新当前页。
 
@@ -420,7 +415,6 @@ await reloadListAfterDelete();
   title="文章"
   presets={postListPresets}
   onCreate={() => navigate('/posts/new')}
-  onView={(record) => navigate(`/posts/${record.id}`)}
   onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
 />
 ```
@@ -578,7 +572,7 @@ export const postListPresets: ListPresets = {
 - 初始化自动请求 `posts_index({ page: 1, size: 10 })`。
 - 翻页、修改 pageSize、修改 params 都会发正确 payload。
 - 快速翻页时旧响应不会覆盖新响应。
-- 新建、查看、编辑、返回列表的路由跳转正常。
+- 新建、编辑、返回列表的路由跳转正常。
 - 新建成功后按约定进入详情或列表。
 - 详情删除、编辑页保存、取消编辑都回到正确路由。
 - 行内删除走 `posts_destroy`，成功后刷新当前页。

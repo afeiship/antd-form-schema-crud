@@ -53,15 +53,15 @@ VITE_API_TOKEN=your-token
   presets={postListPresets}
   title="文章"
   onCreate={() => navigate('/posts/new')}
-  onView={(record) => navigate(`/posts/${record.id}`)}
   onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
 />
 ```
 
 - 服务端分页，默认 `page=1`、`size=10`。
 - `presets` 在 `list-presets.ts` 集中维护列标题、宽度和对齐。
+- 行内只有编辑和删除；点击整行不会跳转。
 - 行内删除带确认；删除当前页最后一条会回退一页。
-- 列表只负责列表，新建/详情/编辑靠路由跳转。
+- 列表只负责列表，新建/详情/编辑靠路由跳转；列表不提供查看入口，从编辑页取消可回到详情。
 
 ## 表单
 

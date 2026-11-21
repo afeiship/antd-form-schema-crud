@@ -53,8 +53,6 @@ export interface ListActions {
   create?: false | CrudActionConfig;
   /** Refresh button; visible by default. */
   refresh?: false | CrudActionConfig;
-  /** View action; needs `onView` to render. */
-  view?: false | CrudActionConfig;
   /** Edit action; needs `onEdit` to render. */
   edit?: false | CrudActionConfig;
   /** Row delete action; needs `destroy` to render. */
@@ -147,7 +145,6 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
   >;
 
   onCreate?: () => void;
-  onView?: (record: TRecord) => void;
   onEdit?: (record: TRecord) => void;
   /** Called whenever the page or page size changes, including params reset and delete rollback. */
   onPageChange?: (page: number, pageSize: number) => void;

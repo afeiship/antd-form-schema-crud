@@ -33,7 +33,6 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
     confirmDelete = true,
     tableProps,
     onCreate,
-    onView,
     onEdit,
     onPageChange,
     onSuccess,
@@ -72,7 +71,6 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
     onError,
   });
 
-  const canView = actions?.view !== false && Boolean(onView);
   const canEdit = actions?.edit !== false && Boolean(onEdit);
   const canDelete = actions?.delete !== false && Boolean(resolvedApi.destroy);
 
@@ -81,12 +79,10 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
     columns,
     presets,
     confirmDelete,
-    canView,
     canEdit,
     canDelete,
     deletingKey,
     rowKey,
-    onView,
     onEdit,
     onDelete: handleDelete,
   });
@@ -130,7 +126,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
 
   const titleNode = title === false ? undefined : <>{title ?? '记录'}列表</>;
 
-  const { onRow: userOnRow, ...restTableProps } = tableProps ?? {};
+  const restTableProps = tableProps ?? {};
   const rowKeyProp = rowKey as TableProps<TRecord>['rowKey'];
 
   return (
@@ -181,21 +177,6 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
               showSizeChanger: true,
               showTotal: (value) => `共 ${value} 条`,
               onChange: handlePageChange,
-            }}
-            onRow={(record, index) => {
-              const rowProps = userOnRow?.(record, index) ?? {};
-              if (!canView) return rowProps;
-
-              return {
-                ...rowProps,
-                onClick: (event) => {
-                  rowProps.onClick?.(event);
-                  if (event.defaultPrevented) return;
-                  const target = event.target as HTMLElement;
-                  if (target.closest('button, a, input, textarea, select, [role="button"]')) return;
-                  onView?.(record);
-                },
-              };
             }}
           />
         </Spin>

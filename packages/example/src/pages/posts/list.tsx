@@ -53,7 +53,6 @@ export function PostsListPage() {
           pageSize={pageSize}
           onPageChange={handlePageChange}
           onCreate={() => navigate('/posts/new')}
-          onView={(record) => navigate(`/posts/${record.id}`)}
           onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
           onSuccess={handleSuccess}
           onError={(error) => message.error(errorMessage(error, '操作失败，请重试。'))}

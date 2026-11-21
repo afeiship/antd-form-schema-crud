@@ -176,17 +176,12 @@ describe('pagination and responses', () => {
 });
 
 describe('row actions', () => {
-  it('calls onView from row click and from the action button', async () => {
+  it('does not render a view action', async () => {
     const api = makeApi();
-    const onView = vi.fn();
-    render(<SchemaCrudList schema={schema} api={api} onView={onView} />);
+    render(<SchemaCrudList schema={schema} api={api} onEdit={vi.fn()} />);
 
     await screen.findByText('Ada');
-    fireEvent.click(screen.getByText('Ada'));
-    expect(onView).toHaveBeenCalledWith(rows[0]);
-
-    fireEvent.click(screen.getAllByRole('button', { name: /查\s*看/ })[1]);
-    expect(onView).toHaveBeenCalledWith(rows[1]);
+    expect(screen.queryByRole('button', { name: /查\s*看/ })).not.toBeInTheDocument();
   });
 
   it('calls onEdit from the action button', async () => {
@@ -240,16 +235,14 @@ describe('row actions', () => {
         schema={schema}
         api={api}
         onCreate={vi.fn()}
-        onView={vi.fn()}
         onEdit={vi.fn()}
-        actions={{ create: false, refresh: false, view: false, edit: false, delete: false }}
+        actions={{ create: false, refresh: false, edit: false, delete: false }}
       />
     );
 
     await screen.findByText('Ada');
     expect(screen.queryByRole('button', { name: /新\s*建/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /刷\s*新/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /查\s*看/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /编\s*辑/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /删\s*除/ })).not.toBeInTheDocument();
   });

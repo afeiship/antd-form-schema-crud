@@ -88,7 +88,7 @@
    - presets 补 `title/width/align/ellipsis/fixed`；
    - 无 columns 时从 schema 推导；
    - `options` 映射为 label；
-   - 追加查看、编辑、删除操作列。
+   - 追加编辑、删除操作列。
 3. `utils/list`：
    - 响应校验；
    - 稳定 params key；
@@ -112,7 +112,7 @@
 3. `Spin` 包 Table，默认 `bordered`、`size="middle"`。
 4. 服务端分页。
 5. 加载失败 `Alert + 重试`。
-6. 行点击和查看、编辑、删除动作按 `actions` 开关。
+6. 编辑、删除动作按 `actions` 开关。
 7. 删除默认 `Popconfirm`。
 8. 样式只加列表必要的类。
 
@@ -139,7 +139,7 @@
    - 加载失败重试；
    - 非法响应结构；
    - 自动列和 presets；
-   - 行内查看、编辑；
+   - 行内编辑；
    - 删除确认与刷新；
    - 删除当前页最后一条回退；
    - actions 隐藏。
@@ -179,6 +179,11 @@
 - `SchemaCrudList` 增加受控 `page` 和 `onPageChange(page, pageSize)`。
 - 示例用 `useSearchParams` 把 `page`、`size` 写进 URL。
 - 覆盖刷新保留页码、外部 page 变化和翻页回调测试。
+
+## 阶段 6.2：移除列表查看入口
+
+- 删除列表 `onView`、`actions.view`、整行点击跳转和查看按钮。
+- 列表操作列只保留编辑、删除。
 
 ## 阶段 7：收尾
 

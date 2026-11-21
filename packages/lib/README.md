@@ -26,7 +26,6 @@ import '@jswork/antd-form-schema-crud/style.css';
   title="文章"
   presets={postListPresets}
   onCreate={() => navigate('/posts/new')}
-  onView={(record) => navigate(`/posts/${record.id}`)}
   onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
 />
 ```
@@ -58,7 +57,8 @@ posts_index({ page, size, ...params }) // => { rows, total }
 - `page`、`size` 由组件控制，`params` 里的同名值会被覆盖。
 - 响应必须是 `{ rows, total }`；外层 `data` 解包放在 API 适配层。
 - 服务端分页；`presets` 只配置列展示，不改变表单字段。
-- 列表不依赖 React Router，跳转由 `onCreate / onView / onEdit` 交给业务。
+- 列表不依赖 React Router，跳转由 `onCreate / onEdit` 交给业务。
+- 行内只有编辑和删除，不提供查看按钮，也不响应整行点击。
 - 行内删除默认开启，带 `Popconfirm`；删除当前页最后一条会自动回退一页。
 - 需要刷新后保留页码时，把 `page` 受控传入，并用 `onPageChange` 写回路由；`onPageChange` 也会覆盖筛选重置和删除回退。
 

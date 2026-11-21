@@ -24,7 +24,6 @@ import '@jswork/antd-form-schema-crud/style.css';
   schema={postSchema}
   title="文章"
   onCreate={() => navigate('/posts/new')}
-  onView={(record) => navigate(`/posts/${record.id}`)}
   onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
 />;
 
@@ -38,7 +37,7 @@ import '@jswork/antd-form-schema-crud/style.css';
 />;
 ```
 
-- 组件不内置路由；列表跳转由 `onCreate / onView / onEdit` 交给业务。
+- 组件不内置路由；列表跳转由 `onCreate / onEdit` 交给业务。
 - `resource` 自动解析 `nx.$api` 的 `index / show / create / update / destroy`。
 - 列可以用显式 `columns`，也可以由 `schema.fields` 推导，再用 `presets` 补展示属性。
 - 成功回调统一为 `onSuccess(event)`，按 `event.action` 区分创建、保存、删除。

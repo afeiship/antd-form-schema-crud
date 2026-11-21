@@ -11,12 +11,10 @@ interface UseCrudColumnsOptions<TRecord extends CrudRecord> {
   columns?: TableProps<TRecord>['columns'];
   presets?: ListPresets;
   confirmDelete: boolean;
-  canView: boolean;
   canEdit: boolean;
   canDelete: boolean;
   deletingKey: Key | null;
   rowKey: keyof TRecord | ((record: TRecord) => Key);
-  onView?: (record: TRecord) => void;
   onEdit?: (record: TRecord) => void;
   onDelete: (record: TRecord) => Promise<void>;
 }
@@ -50,12 +48,10 @@ export function useCrudColumns<TRecord extends CrudRecord>({
   columns,
   presets,
   confirmDelete,
-  canView,
   canEdit,
   canDelete,
   deletingKey,
   rowKey,
-  onView,
   onEdit,
   onDelete,
 }: UseCrudColumnsOptions<TRecord>) {
@@ -98,24 +94,19 @@ export function useCrudColumns<TRecord extends CrudRecord>({
   }, [columns, presetMap, schema.fields]);
 
   const actionColumn = useMemo<TableProps<TRecord>['columns'] | null>(() => {
-    if (!canView && !canEdit && !canDelete) return null;
+    if (!canEdit && !canDelete) return null;
 
     return [
       {
         key: '__schema_crud_actions',
         title: '操作',
-        width: canDelete ? 168 : 120,
+        width: canEdit && canDelete ? 112 : 96,
         render: (_: unknown, record: TRecord) => {
           const recordKey = getRecordKey(record, rowKey);
           const isDeleting = deletingKey !== null && deletingKey === recordKey;
 
           return (
             <Space size="small">
-              {canView ? (
-                <Button type="link" size="small" onClick={() => onView?.(record)}>
-                  查看
-                </Button>
-              ) : null}
               {canEdit ? (
                 <Button type="link" size="small" onClick={() => onEdit?.(record)}>
                   编辑
@@ -150,7 +141,7 @@ export function useCrudColumns<TRecord extends CrudRecord>({
         },
       },
     ];
-  }, [canView, canEdit, canDelete, confirmDelete, deletingKey, rowKey, onView, onEdit, onDelete]);
+  }, [canEdit, canDelete, confirmDelete, deletingKey, rowKey, onEdit, onDelete]);
 
   return useMemo<TableProps<TRecord>['columns']>(() => {
     const list = [...(dataColumns ?? [])];

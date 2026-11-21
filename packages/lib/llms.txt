@@ -30,7 +30,6 @@ and expects:
   title="文章"
   presets={postListPresets}
   onCreate={() => navigate('/posts/new')}
-  onView={(record) => navigate(`/posts/${record.id}`)}
   onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
 />
 ```
@@ -70,8 +69,7 @@ Presets only decorate existing schema fields; they never add columns. No `render
 ## Actions
 
 - create: `actions.create !== false` and `onCreate`
-- view: `actions.view !== false` and `onView`; disables row click too
-- edit: `actions.edit !== false` and `onEdit`
+- edit: `actions.edit !== false` and `onEdit`; the only row navigation entry
 - delete: `actions.delete !== false` and resolved `destroy`
 - refresh: `actions.refresh !== false`, shown by default
 - back: `onBack` present
