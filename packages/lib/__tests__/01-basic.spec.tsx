@@ -13,6 +13,7 @@ import SchemaCrudForm, {
 } from '../src';
 import { checkRequirement, errorMessage, resolveApi } from '../src';
 import type { CrudSuccessEvent } from '../src';
+import { selectSchemaFields } from '../src/utils/schema';
 
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
@@ -152,6 +153,62 @@ describe('automatic mode', () => {
     rerender(<SchemaCrudForm schema={schema} api={api} id={8} title="文章" />);
     expect(screen.getByText('文章详情')).toBeInTheDocument();
     await screen.findByText('Ada');
+  });
+});
+
+describe('view fields', () => {
+  it('shows only viewFields in view mode and the full schema in edit mode', async () => {
+    const api = makeApi();
+    render(
+      <SchemaCrudForm
+        schema={schema}
+        api={api}
+        id={7}
+        title="文章"
+        viewFields={['status']}
+      />
+    );
+
+    await screen.findByText('active');
+    expect(screen.getByText('状态')).toBeInTheDocument();
+    expect(screen.queryByText('姓名')).not.toBeInTheDocument();
+    expect(screen.queryByText('Ada')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+    expect(await screen.findByLabelText('姓名')).toHaveValue('Ada');
+    expect(screen.getByLabelText('状态')).toBeInTheDocument();
+
+    expect(schema.fields.map((field) => field.key)).toEqual(['name', 'status']);
+  });
+
+  it('ignores viewFields outside view mode', () => {
+    const api = makeApi();
+    render(
+      <SchemaCrudForm
+        schema={schema}
+        api={api}
+        mode="create"
+        viewFields={['status']}
+      />
+    );
+
+    expect(screen.getByLabelText('姓名')).toBeInTheDocument();
+    expect(screen.getByLabelText('状态')).toBeInTheDocument();
+  });
+
+  it('selects fields in order and skips unknown or hidden fields without mutating', () => {
+    const mixedSchema: FormSchema = {
+      ...schema,
+      fields: [
+        ...schema.fields,
+        { key: 'secret', label: '内部字段', widget: 'input', hidden: true },
+      ],
+    };
+    const selected = selectSchemaFields(mixedSchema, ['status', 'secret', 'missing', 'name', 'status']);
+
+    expect(selected.fields.map((field) => field.key)).toEqual(['status', 'name']);
+    expect(selected.initialValues).toBe(mixedSchema.initialValues);
+    expect(mixedSchema.fields.map((field) => field.key)).toEqual(['name', 'status', 'secret']);
   });
 });
 

@@ -15,6 +15,7 @@ import { useCrudList } from '../hooks/use-crud-list';
 import { useLatest } from '../hooks/use-latest';
 import type { CrudRecord, SchemaCrudListProps } from '../types';
 import { alertTitleProps } from '../utils/antd';
+import { selectSchemaFields } from '../utils/schema';
 
 function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
   props: SchemaCrudListProps<TRecord>
@@ -26,6 +27,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
     title,
     presets,
     columns,
+    fields,
     rowKey = 'id' as keyof TRecord,
     params,
     page: controlledPage,
@@ -44,6 +46,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
 
   const listKeys = getSchemaCrudListKeys();
   const resolvedApi = useMemo(() => resolveApi<TRecord>(api, resource), [api, resource]);
+  const effectiveSchema = useMemo(() => selectSchemaFields(schema, fields), [schema, fields]);
   const requirement = checkListRequirement(resolvedApi, resource);
   const blocked = requirement.missing.length > 0;
 
@@ -78,7 +81,7 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
   const canDelete = actions?.delete !== false && Boolean(resolvedApi.destroy);
 
   const resolvedColumns = useCrudColumns<TRecord>({
-    schema,
+    schema: effectiveSchema,
     columns,
     presets,
     confirmDelete,

@@ -116,8 +116,13 @@ export interface SchemaCrudFormProps<TRecord = CrudRecord> {
   /** Delete confirmation; defaults to true. */
   confirmDelete?: boolean;
 
-  /** Defaults to `{ layout: 'vertical' }`. */
+  /** Defaults to horizontal layout with a 120px label column. */
   formProps?: CrudFormProps;
+  /**
+   * Field keys shown in view mode, in this order. Create/edit keep the full schema.
+   * Omitted = all fields.
+   */
+  viewFields?: readonly string[];
 
   onSuccess?: (event: CrudSuccessEvent) => void;
   /** Create cancel and view back. Edit cancel returns to view internally. */
@@ -139,6 +144,11 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
   presets?: ListPresets;
   /** Explicit columns; omitted columns are derived from schema.fields. */
   columns?: TableProps<TRecord>['columns'];
+  /**
+   * Restrict derived columns to these schema field keys, in this order.
+   * Omitted = all fields; explicit `columns` wins.
+   */
+  fields?: readonly string[];
   rowKey?: keyof TRecord | ((record: TRecord) => Key);
 
   /** Business filters, sent with page / size. */

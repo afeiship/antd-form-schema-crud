@@ -12,6 +12,7 @@ import { useLatest } from '../hooks/use-latest';
 import { useRecordLoader } from '../hooks/use-record-loader';
 import type { CrudRecord, CrudValues, SchemaCrudFormProps } from '../types';
 import { alertTitleProps } from '../utils/antd';
+import { selectSchemaFields } from '../utils/schema';
 import { SchemaCardExtra, SchemaCardTitle } from './schema-card-header';
 import { SchemaFooter } from './schema-footer';
 
@@ -33,6 +34,7 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
     onModeChange,
     onError,
     formProps,
+    viewFields,
     className,
   } = props;
 
@@ -100,15 +102,26 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
     ...restFormProps
   } = resolvedFormProps;
 
-  const { resolvedSchema, formKey, formReady, dirty, submit, handleFormReady, handleValuesChange } =
-    useCrudForm({
-      mode,
-      id,
-      schema,
-      record: record as CrudValues | undefined,
-      reloadVersion,
-      onValuesChange: userOnValuesChange,
-    });
+  const {
+    resolvedSchema: loadedSchema,
+    formKey,
+    formReady,
+    dirty,
+    submit,
+    handleFormReady,
+    handleValuesChange,
+  } = useCrudForm({
+    mode,
+    id,
+    schema,
+    record: record as CrudValues | undefined,
+    reloadVersion,
+    onValuesChange: userOnValuesChange,
+  });
+  const resolvedSchema = useMemo(
+    () => (mode === 'view' ? selectSchemaFields(loadedSchema, viewFields) : loadedSchema),
+    [loadedSchema, mode, viewFields]
+  );
 
   const handleCancel = useCallback(() => {
     if (mode === 'edit') {

@@ -81,6 +81,61 @@ describe('list basics', () => {
     expect(document.querySelector('.ant-table-small')).toBeInTheDocument();
   });
 
+  it('selects derived columns by fields order', async () => {
+    const api = makeApi();
+    render(<SchemaCrudList schema={schema} api={api} fields={['status', 'name']} />);
+
+    await screen.findByText('Ada');
+    const headers = [...document.querySelectorAll('.ant-table-thead th')].map((cell) =>
+      cell.textContent?.trim()
+    );
+    expect(headers).toEqual(['状态', '姓名', '操作']);
+  });
+
+  it('ignores unknown or hidden field keys', async () => {
+    const api = makeApi();
+    render(
+      <SchemaCrudList
+        schema={schema}
+        api={api}
+        fields={['name', 'secret', 'missing', 'conditional']}
+      />
+    );
+
+    await screen.findByText('Ada');
+    const headers = [...document.querySelectorAll('.ant-table-thead th')].map((cell) =>
+      cell.textContent?.trim()
+    );
+    expect(headers).toEqual(['姓名', '操作']);
+  });
+
+  it('lets explicit columns win over fields', async () => {
+    const api = makeApi();
+    render(
+      <SchemaCrudList
+        schema={schema}
+        api={api}
+        fields={['name']}
+        columns={[{ title: '状态', dataIndex: 'status' }]}
+      />
+    );
+
+    await waitFor(() => expect(api.index).toHaveBeenCalled());
+    expect(screen.getByText('状态')).toBeInTheDocument();
+    expect(screen.queryByText('姓名')).not.toBeInTheDocument();
+  });
+
+  it('renders only the action column for an empty field list', async () => {
+    const api = makeApi();
+    render(<SchemaCrudList schema={schema} api={api} fields={[]} />);
+
+    await waitFor(() => expect(api.index).toHaveBeenCalled());
+    const headers = [...document.querySelectorAll('.ant-table-thead th')].map((cell) =>
+      cell.textContent?.trim()
+    );
+    expect(headers).toEqual(['操作']);
+  });
+
   it('hides a derived column through presets.hidden', async () => {
     const api = makeApi();
     render(
