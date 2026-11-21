@@ -319,6 +319,22 @@ describe('edit', () => {
     expect(screen.getByText('记录详情')).toBeInTheDocument();
   });
 
+  it('shows the save shortcut hint in create and edit but not in view', async () => {
+    const api = makeApi();
+    const view = render(<SchemaCrudForm schema={schema} api={api} id={7} />);
+
+    await screen.findByText('Ada');
+    expect(screen.queryByText('⌘/Ctrl + S 保存')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+    await screen.findByLabelText('姓名');
+    expect(screen.getByText('⌘/Ctrl + S 保存')).toBeInTheDocument();
+    view.unmount();
+
+    render(<SchemaCrudForm schema={schema} api={api} />);
+    expect(screen.getByText('⌘/Ctrl + S 保存')).toBeInTheDocument();
+  });
+
   it('saves with Cmd+S on macOS in create mode', async () => {
     const api = makeApi();
     render(<SchemaCrudForm schema={schema} api={api} />);

@@ -54,9 +54,28 @@ Route-backed pagination: pass controlled `page` and write it back in `onPageChan
 
 `mode="form"` is the one-page create/edit variant: no id => create, id present => edit immediately, never view. Saving stays in edit and reloads the record; cancel and delete call `onBack`.
 
-Create/edit save with Cmd+S (macOS) or Ctrl+S (Windows/Linux); the browser Save dialog is suppressed. The shortcut shares the save button's conditions (form ready, no request in flight, dirty in edit). View mode does not bind it.
+Create/edit save with Cmd+S (macOS) or Ctrl+S (Windows/Linux); the browser Save dialog is suppressed. The shortcut shares the save button's conditions (form ready, no request in flight, dirty in edit). View mode does not bind it. Create/edit also show a small gray `⌘/Ctrl + S 保存` hint on the left side of the footer.
 
 Title bar: icon-only back on the left when `onBack` exists. Footer toolbar: all actions are right-aligned in one group, delete first, then cancel/back, then the primary action. It has a top border and a light background.
+
+## External actions
+
+Mounted list and form expose actions through React hooks. No ref and no window events.
+
+```tsx
+const list = useCrudListActions('posts');
+const form = useCrudFormActions('posts');
+
+list.reload(); list.create(); list.edit(record); await list.remove(record);
+form.submit(); form.reload(); form.edit(); form.cancel(); await form.remove();
+```
+
+- Scope defaults to `resource`; override with `actionScope`.
+- Hooks return `ready: false` plus no-op actions before the instance mounts, and update after registration/unmount.
+- List and form scopes are isolated, so both can use `'posts'`.
+- One instance per surface + scope. A duplicate logs an error in development and the first instance keeps ownership.
+- `remove` skips Popconfirm and returns a Promise; callers own confirmation. `submit` returns void; results arrive through onSuccess / onError.
+- All actions reuse the built-in button handlers and guards, including router navigation, pagination rollback and `mode="form"` reload behavior.
 
 Form defaults: `layout="horizontal"`, `labelCol={{ flex: '120px' }}`, `wrapperCol={{ flex: 1 }}`. Override through `formProps`. The title has an icon-only back; footer carries the text actions. `Card.extra` is caller-owned content.
 

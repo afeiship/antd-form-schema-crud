@@ -2,6 +2,8 @@ export { default } from './components/schema-crud-form';
 export { SchemaCrudForm, AntdFormSchemaCrudForm } from './components/schema-crud-form';
 export { SchemaCrudList } from './components/schema-crud-list';
 export { resolveApi, checkRequirement, checkListRequirement, errorMessage, getNxApi } from './api';
+export { useCrudListActions } from './hooks/use-crud-list-actions';
+export { useCrudFormActions } from './hooks/use-crud-form-actions';
 export {
   configureSchemaCrudForm,
   getSchemaCrudFormDefaults,
@@ -23,6 +25,7 @@ export type { ApiRequirement } from './api';
 export type {
   CrudMode,
   CrudFormMode,
+  CrudActionSurface,
   CrudId,
   CrudAction,
   CrudRecord,
@@ -33,6 +36,8 @@ export type {
   CrudApi,
   CrudActionConfig,
   CrudActions,
+  CrudListActionsApi,
+  CrudFormActionsApi,
   ListActions,
   ListPresetField,
   ListPresetsInput,

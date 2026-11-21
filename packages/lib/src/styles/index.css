@@ -23,6 +23,13 @@
   padding: 12px;
 }
 
+.antd-form-schema-crud__footer-hint {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
 .antd-form-schema-crud__footer-right {
   display: flex;
   align-items: center;

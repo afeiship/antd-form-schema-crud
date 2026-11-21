@@ -3,6 +3,7 @@ import cx from 'classnames';
 import { CLASS_NAME } from '../../constants';
 import { getSchemaCrudCardSize } from '../../defaults';
 import type { CrudRecord, SchemaCrudFormProps } from '../../types';
+import { useRegisterCrudFormActions } from '../../actions/use-crud-action-registration';
 import { SchemaCardExtra, SchemaCardTitle } from '../schema-card-header';
 import { SchemaFooter } from '../schema-footer';
 import { SchemaFormBody } from './schema-form-body';
@@ -12,7 +13,54 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
   props: SchemaCrudFormProps<TRecord>
 ) {
   const state = useSchemaCrudFormState(props);
-  const { extra, className } = props;
+  const { extra, className, actionScope, resource } = props;
+
+  useRegisterCrudFormActions(actionScope ?? resource, {
+    submit: () => {
+      if (!state.canSave) return;
+      state.submit();
+    },
+    reload: () => {
+      if (
+        state.mode === 'create' ||
+        state.blocked ||
+        state.loading ||
+        state.submitLoading ||
+        state.deleteLoading
+      ) {
+        return;
+      }
+      state.reload();
+    },
+    edit: () => {
+      if (
+        state.mode !== 'view' ||
+        state.resolvedActions?.edit === false ||
+        state.record === undefined ||
+        state.record === null
+      ) {
+        return;
+      }
+      state.handleEdit();
+    },
+    cancel: () => {
+      if (!state.canCancel) return;
+      state.handleCancel();
+    },
+    remove: () => {
+      if (
+        state.mode === 'create' ||
+        !state.resolvedApi.destroy ||
+        !state.available ||
+        state.resolvedActions?.delete === false ||
+        state.submitLoading ||
+        state.deleteLoading
+      ) {
+        return Promise.resolve();
+      }
+      return state.handleDelete();
+    },
+  });
   const cardSize = getSchemaCrudCardSize();
   const subject = state.resolvedTitle === false ? null : (state.resolvedTitle ?? '记录');
 

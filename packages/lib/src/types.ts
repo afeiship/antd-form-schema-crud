@@ -10,6 +10,30 @@ export type CrudAction = 'load' | 'create' | 'update' | 'delete';
 
 export type CrudRecord = Record<string, any>;
 export type CrudValues = Record<string, any>;
+export type CrudActionSurface = 'list' | 'form';
+
+/** Actions exposed by a mounted SchemaCrudList instance. */
+export interface CrudListActionsApi<TRecord extends CrudRecord = CrudRecord> {
+  /** True while a matching list instance is mounted and registered. */
+  ready: boolean;
+  reload: () => void;
+  create: () => void;
+  edit: (record: TRecord) => void;
+  /** Runs delete directly; caller owns confirmation. Resolves after the request and callbacks settle. */
+  remove: (record: TRecord) => Promise<void>;
+}
+
+/** Actions exposed by a mounted SchemaCrudForm instance. */
+export interface CrudFormActionsApi {
+  /** True while a matching form instance is mounted and registered. */
+  ready: boolean;
+  submit: () => void;
+  reload: () => void;
+  edit: () => void;
+  cancel: () => void;
+  /** Runs delete directly; caller owns confirmation. Resolves after the request and callbacks settle. */
+  remove: () => Promise<void>;
+}
 
 /** Configurable request/response keys for resource list. */
 export interface CrudListKeys {
@@ -117,6 +141,8 @@ export interface SchemaCrudFormProps<TRecord = CrudRecord> {
   actions?: CrudActions;
   /** Delete confirmation; defaults to true. */
   confirmDelete?: boolean;
+  /** Scope used by useCrudFormActions; falls back to resource when omitted. */
+  actionScope?: string;
 
   /** Defaults to horizontal layout with a 120px label column. */
   formProps?: CrudFormProps;
@@ -163,6 +189,8 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
 
   actions?: ListActions;
   confirmDelete?: boolean;
+  /** Scope used by useCrudListActions; falls back to resource when omitted. */
+  actionScope?: string;
   tableProps?: Omit<
     TableProps<TRecord>,
     'columns' | 'dataSource' | 'pagination' | 'rowKey' | 'loading'

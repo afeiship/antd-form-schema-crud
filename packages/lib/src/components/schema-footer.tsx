@@ -100,5 +100,16 @@ export function SchemaFooter({
   }
 
   if (buttons.length === 0) return null;
-  return <div className={`${CLASS_NAME}__footer-right`}>{buttons}</div>;
+
+  const shortcutHint =
+    mode !== 'view' && save ? (
+      <span className={`${CLASS_NAME}__footer-hint`}>⌘/Ctrl + S 保存</span>
+    ) : null;
+
+  return (
+    <>
+      {shortcutHint}
+      <div className={`${CLASS_NAME}__footer-right`}>{buttons}</div>
+    </>
+  );
 }

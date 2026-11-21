@@ -137,8 +137,41 @@ export const postPageConfig = {
 - 只需要新建/编辑时传 `mode="form"`：无 `id` 为创建，有 `id` 直接进入编辑，不经过详情态。保存后停留在编辑并重新加载记录；取消或删除调用 `onBack`。大部分单页表单用这个即可。
 - 表单默认横向布局，标签宽 `120px`；要改宽度传 `formProps.labelCol`。
 - 详情可用 `viewFields` 筛选字段，组件内按声明顺序展示；新建和编辑不受影响。
-- 新建、编辑支持 `Cmd+S`（macOS）/ `Ctrl+S`（Windows/Linux）保存，并拦截浏览器自带的保存网页；详情态不绑定快捷键。
+- 新建、编辑支持 `Cmd+S`（macOS）/ `Ctrl+S`（Windows/Linux）保存，并拦截浏览器自带的保存网页；详情态不绑定快捷键，底部左侧显示灰色快捷键提示。
 - 快捷键与保存按钮共用同一套可保存条件：表单 ready、无请求进行中、编辑态有变更；校验不通过时不会发请求。
+
+## 外部动作 hook
+
+列表和表单的动作可通过 `actionScope` 暴露给同页面其他 React 组件，不需要 ref，也不走 window 事件：
+
+```tsx
+import { useCrudListActions, useCrudFormActions } from '@jswork/antd-form-schema-crud';
+
+function PageToolbar() {
+  const list = useCrudListActions('posts');
+  const form = useCrudFormActions('posts');
+
+  return (
+    <>
+      <Button disabled={!list.ready} onClick={() => list.reload()}>刷新</Button>
+      <Button disabled={!list.ready} onClick={() => list.create()}>新建</Button>
+      <Button disabled={!list.ready} onClick={() => list.edit(record)}>编辑</Button>
+      <Button disabled={!form.ready} onClick={() => form.submit()}>保存</Button>
+    </>
+  );
+}
+```
+
+```tsx
+<SchemaCrudList resource="posts" ... />
+<SchemaCrudForm resource="posts" ... />
+```
+
+- 默认 scope 回退到 `resource`，也可用 `actionScope` 显式指定。
+- 列表和表单按 surface 隔离，同一个 `'posts'` 可同时存在。
+- 目标挂载前返回 `ready: false` 和完整 no-op API；卸载后自动失效。
+- 同一 surface + scope 只允许一个实例，重复注册会在开发环境报错并保留第一个。
+- `remove` 直接删除、不弹 Popconfirm，调用方自行确认；返回 Promise。`submit` 是触发式接口，结果仍走 `onSuccess` / `onError`。
 - 标题左侧有图标返回；底部是独立工具栏：删除、取消/返回与主操作统一靠右，删除排在最前。
 - 创建默认值写在 `schema.initialValues`，提交前转换写在 `schema.normalizeValues`。
 - 成功回调统一为 `onSuccess(event)`，按 `event.action` 区分 `create / update / delete`。
