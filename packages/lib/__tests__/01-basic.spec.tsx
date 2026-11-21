@@ -48,17 +48,17 @@ afterEach(() => {
 });
 
 describe('card size', () => {
-  it('uses a small card by default and one shared setting controls the size', () => {
+  it('uses a middle card by default and one shared setting can shrink it', () => {
     const api = makeApi();
     const first = render(<SchemaCrudForm schema={schema} api={api} />);
-    expect(first.container.querySelector('.antd-form-schema-crud')).toHaveClass('ant-card-small');
-    first.unmount();
-
-    configureSchemaCrud({ cardSize: 'middle' });
-    const second = render(<SchemaCrudForm schema={schema} api={api} />);
-    expect(second.container.querySelector('.antd-form-schema-crud')).not.toHaveClass(
+    expect(first.container.querySelector('.antd-form-schema-crud')).not.toHaveClass(
       'ant-card-small'
     );
+    first.unmount();
+
+    configureSchemaCrud({ cardSize: 'small' });
+    const second = render(<SchemaCrudForm schema={schema} api={api} />);
+    expect(second.container.querySelector('.antd-form-schema-crud')).toHaveClass('ant-card-small');
   });
 });
 

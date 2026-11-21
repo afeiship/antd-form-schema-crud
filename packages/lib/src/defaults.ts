@@ -3,7 +3,7 @@ import type { CrudActions, CrudFormProps, CrudListKeys } from './types';
 
 /** UI defaults shared by SchemaCrudForm and SchemaCrudList. */
 export interface SchemaCrudDefaults {
-  /** Card density for both the form and the list; defaults to `small`. */
+  /** Card density for both the form and the list; defaults to `middle`. */
   cardSize?: CardProps['size'];
 }
 
@@ -23,7 +23,7 @@ export function getSchemaCrudDefaults(): SchemaCrudDefaults {
 
 /** Effective Card size; both components read this one value. */
 export function getSchemaCrudCardSize(): NonNullable<CardProps['size']> {
-  return globalSchemaCrudDefaults.cardSize ?? 'small';
+  return globalSchemaCrudDefaults.cardSize ?? 'middle';
 }
 
 /** Remove shared UI defaults. Primarily for tests and app teardown. */

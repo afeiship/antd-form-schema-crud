@@ -155,15 +155,15 @@ export const postListPresets: ListPresets = {
 
 ## Shared UI defaults
 
-表单卡片和列表卡片共用同一个 `cardSize`，默认 `small`。需要调整时只配置一次：
+表单卡片和列表卡片共用同一个 `cardSize`，默认 `middle`。需要调整时只配置一次：
 
 ```ts
 import { configureSchemaCrud } from '@jswork/antd-form-schema-crud';
 
-configureSchemaCrud({ cardSize: 'middle' });
+configureSchemaCrud({ cardSize: 'small' });
 ```
 
-`getSchemaCrudDefaults()` 返回当前共享默认值，`resetSchemaCrudDefaults()` 恢复默认。`small` 卡片的标题栏、内边距和底部工具栏会一起收紧。
+`getSchemaCrudDefaults()` 返回当前共享默认值，`resetSchemaCrudDefaults()` 恢复默认。改成 `small` 后，标题栏、内边距和底部工具栏会一起收紧。
 
 ## Project defaults
 

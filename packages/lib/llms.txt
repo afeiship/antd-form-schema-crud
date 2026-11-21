@@ -89,7 +89,7 @@ Presets only decorate existing schema fields; they never add columns. `hidden: t
 
 ## Defaults
 
-- Shared: both form and list Cards use `size='small'`; change once with `configureSchemaCrud({ cardSize })`, read with `getSchemaCrudDefaults()`, reset with `resetSchemaCrudDefaults()`.
+- Shared: both form and list Cards use `size='middle'`; change once with `configureSchemaCrud({ cardSize })`, read with `getSchemaCrudDefaults()`, reset with `resetSchemaCrudDefaults()`.
 - List: pageSize 10, rowKey 'id', confirmDelete true, bordered table, size small.
 - List keys default to page / size / rows / total; configure once with `configureSchemaCrudList({ keys })`, read effective keys with `getSchemaCrudListDefaults()`, reset with `resetSchemaCrudListDefaults()`.
 - Delete success: reload; if current page becomes empty and page > 1, go back one page.
