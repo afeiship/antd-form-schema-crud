@@ -56,6 +56,7 @@
 - `xx_index` 通过 `nx.$api` 自动解析，返回结构严格按 `{ rows, total }`。
 - 服务端分页由组件内部维护，业务只通过 `params` 传筛选条件。
 - 列可以由业务显式传入，也可以从 schema 字段自动推导。
+- 列支持 `presets`：按 key 统一标题、宽度、对齐、省略和固定列，和表单 presets 一样“定义一次，多处复用”。
 - 行内动作通过回调交给路由；组件不假设 Router 实现。
 - 删除支持两种入口：列表行内删除，或详情页 `SchemaCrudForm` 删除。
 - 列表加载、空数据、接口错误、分页请求竞态都有明确状态。
@@ -161,12 +162,29 @@ export interface ListActions {
   delete?: false | CrudActionConfig;
 }
 
+export interface ListPresetField {
+  title?: ReactNode;
+  width?: number | string;
+  align?: 'left' | 'center' | 'right';
+  ellipsis?: boolean;
+  fixed?: 'left' | 'right';
+}
+
+export interface ListPresetsInput {
+  fields?: Record<string, ListPresetField>;
+}
+
+/** 分区写法，或扁平的 key -> 标题映射。 */
+export type ListPresets = ListPresetsInput | Record<string, string>;
+
 export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
   resource?: string;
   schema: FormSchema;
   api?: CrudApi<TRecord>;
 
   title?: ReactNode | false;
+  /** 列展示预设；按 key 提供 title / width / align / ellipsis / fixed。 */
+  presets?: ListPresets;
   /** 显式列定义；不传时从 schema 字段推导。 */
   columns?: TableProps<TRecord>['columns'];
   rowKey?: keyof TRecord | ((record: TRecord) => Key);
@@ -194,6 +212,47 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
   className?: string;
 }
 ```
+
+公开导出：`CrudListResult`、`CrudListParams`、`ListActions`、`ListPresetField`、`ListPresetsInput`、`ListPresets`、`SchemaCrudListProps`。
+
+### 列 presets
+
+列表的 `presets` 只描述“列怎么显示”，不改变表单的 `widget` / `label`：
+
+```ts
+const postListPresets: ListPresets = {
+  fields: {
+    title: { title: '标题', width: 280, ellipsis: true },
+    status: { title: '状态', width: 96, align: 'center' },
+    is_sticky: { title: '置顶', width: 80, align: 'center' },
+  },
+};
+```
+
+也接受扁平标题表：
+
+```ts
+const postListPresets = {
+  title: '标题',
+  status: '状态',
+  is_sticky: '置顶',
+};
+```
+
+合并规则：
+
+1. 显式 `columns` 优先。
+2. `presets` 次之。
+3. `schema.fields` 的 `label` 再次。
+4. 最后回退到字段 `key`。
+
+具体行为：
+
+- 传 `columns` 时，只对 `dataIndex` 是字符串的列做属性级合并；列自己写了 `title / width / align / ellipsis / fixed` 就保留，缺的才用 presets 补。
+- 不传 `columns` 时，从 `schema.fields` 生成列，标题优先取 presets，其次取字段 `label`。
+- presets 不创建列：schema 里没有的字段，不会因为 presets 多出一列。
+- 操作列不受 presets 影响。
+- presets 只做展示元数据；自定义单元格、排序、筛选仍用显式 `columns`。
 
 ### 动作显示规则
 
@@ -225,6 +284,7 @@ const defaults = {
   resource="posts"
   schema={postSchema}
   title="文章"
+  presets={postListPresets}
   onCreate={() => navigate('/posts/new')}
   onView={(record) => navigate(`/posts/${record.id}`)}
   onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
@@ -292,12 +352,14 @@ Card 内容：
 
 优先级：
 
-1. 业务传 `columns`，完全使用。
+1. 业务传 `columns`，逐列使用；缺省的展示属性由 `presets` 补。
 2. 不传 `columns`，从 `schema.fields` 推导：
    - 跳过 `hidden: true` 的字段；
-   - 跳过没有 `label` 的字段；
    - 跳过带 `condition` 的字段，避免把条件字段直接当静态列；
-   - 标题取 `label`，`dataIndex` 取 `key`；
+   - 跳过既没有 `label`、也没有 presets 标题的字段；
+   - 标题取 presets 标题，其次取 `label`；
+   - `dataIndex` 取 `key`；
+   - `width / align / ellipsis / fixed` 从 presets 取；
    - `options` 存在时，把值映射成 option label；否则直接显示原值。
 
 不论哪种方式，最后都追加操作列：
@@ -351,6 +413,7 @@ await reloadListAfterDelete();
   resource="posts"
   schema={postSchema}
   title="文章"
+  presets={postListPresets}
   onCreate={() => navigate('/posts/new')}
   onView={(record) => navigate(`/posts/${record.id}`)}
   onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
@@ -426,7 +489,7 @@ packages/lib/src/
 │   └── schema-crud.tsx          # 复用，不改职责
 ├── hooks/
 │   ├── use-crud-list.ts         # index 请求、分页、竞态、删除回退
-│   └── use-crud-columns.ts      # 显式列 / schema 推导列 + 操作列
+│   └── use-crud-columns.ts      # 显式列 / presets / schema 推导列 + 操作列
 └── utils/
     └── list.ts                  # 响应校验、option label 映射
 ```
@@ -434,13 +497,14 @@ packages/lib/src/
 职责：
 
 - `use-crud-list`：只处理 `index` 请求和分页状态，不碰表单。
-- `use-crud-columns`：只生成列定义，不请求数据。
+- `use-crud-columns`：合并显式列、presets 和 schema 字段，只生成列定义，不请求数据。
 - `SchemaCrudList`：纯列表 UI 和行级动作，不做路由。
 - `SchemaCrudForm`：保持现状，不新增列表逻辑。
 
 ## 与现有能力的关系
 
 - `schema` 同时驱动表单、预览和列表默认列。
+- 列表 `presets` 是独立的列展示配置，不改变 `SchemaForm` 的 `label` / `widget`。
 - `resource` 同时驱动五个接口名：`index/show/create/update/destroy`。
 - `configureSchemaCrudForm` 的 `title / confirmDelete / actions / formProps` 仍作用于详情页的 `SchemaCrudForm`，不影响列表动作。
 - 未保存判断、删除确认、底部按钮继续由 `SchemaCrudForm` 负责，不在列表层重复实现。
@@ -458,6 +522,7 @@ packages/example/src/pages/posts/
 ├── create.tsx         # 新建
 ├── detail.tsx         # 详情
 ├── edit.tsx           # 编辑
+├── list-presets.ts    # 列展示 presets
 ```
 
 删除页面里的手写逻辑：
@@ -470,7 +535,22 @@ packages/example/src/pages/posts/
 
 - `postsApi`，其中 `posts_index` 已经返回 `{ rows, total }`。
 - `postSchema`。
-- `PageHeader` 可以保留在页面外层。
+- 新增 `list-presets.ts`，集中维护列标题、宽度和对齐。
+
+```ts
+import type { ListPresets } from '@jswork/antd-form-schema-crud';
+
+export const postListPresets: ListPresets = {
+  fields: {
+    title: { title: '标题', width: 280, ellipsis: true },
+    subtitle: { title: '副标题', width: 240, ellipsis: true },
+    status: { title: '状态', width: 96, align: 'center' },
+    is_sticky: { title: '置顶', width: 80, align: 'center' },
+  },
+};
+```
+
+`PageHeader` 可以保留在页面外层。
 
 `app.tsx` 引入 `react-router-dom`：
 
@@ -499,6 +579,8 @@ packages/example/src/pages/posts/
 - 删除当前页最后一条会回退一页。
 - `actions` 能隐藏对应按钮和操作列。
 - 显式 columns 和 schema 推导 columns 都正确。
+- presets 能补齐列展示属性，显式 columns 已写的属性不被覆盖。
+- presets 不会为 schema 中不存在的字段创建列。
 - `xx_index` 结构不合法时显示接口错误，不渲染脏数据。
 
 ### 类型与构建
@@ -520,3 +602,4 @@ packages/example/src/pages/posts/
 1. 行内删除默认开启，还是默认只在详情里删除？推荐默认开启，但保留 `Popconfirm`。
 2. 不传 `columns` 时从 schema 推导列表列，是否接受？推荐接受，显式 `columns` 仍然优先。
 3. 示例使用 `react-router-dom` 的 `BrowserRouter + Routes`，路由按 `/posts`、`/posts/new`、`/posts/:id`、`/posts/:id/edit` 组织，是否接受？
+4. 列 presets 只收敛 `title / width / align / ellipsis / fixed`，不包含 `render`，是否接受？推荐接受，复杂单元格继续用显式 `columns`。
