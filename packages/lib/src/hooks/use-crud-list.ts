@@ -4,6 +4,7 @@ import { errorMessage } from '../api';
 import type {
   CrudApi,
   CrudAction,
+  CrudListKeys,
   CrudListParams,
   CrudRecord,
   CrudSuccessEvent,
@@ -24,6 +25,7 @@ interface UseCrudListOptions<TRecord extends CrudRecord> {
   params?: Record<string, any>;
   controlledPage?: number;
   pageSize: number;
+  keys: CrudListKeys;
   rowKey: keyof TRecord | ((record: TRecord) => Key);
   onPageChange?: (page: number, pageSize: number) => void;
   onSuccess?: (event: CrudSuccessEvent) => void;
@@ -56,6 +58,7 @@ export function useCrudList<TRecord extends CrudRecord>({
   params,
   controlledPage,
   pageSize,
+  keys,
   rowKey,
   onPageChange,
   onSuccess,
@@ -131,17 +134,17 @@ export function useCrudList<TRecord extends CrudRecord>({
     setLoadError(null);
     setActionError(null);
 
-    const payload: CrudListParams = {
+    const payload = {
       ...(paramsRef.current ?? {}),
-      page,
-      size,
-    };
+      [keys.page]: page,
+      [keys.size]: size,
+    } as CrudListParams;
 
     Promise.resolve()
       .then(() => index(payload))
       .then((data) => {
         if (!active || requestId !== requestIdRef.current) return;
-        const result = assertListResult<TRecord>(data, resource);
+        const result = assertListResult<TRecord>(data, resource, keys);
         setRows(result.rows);
         setTotal(result.total);
         setLoading(false);
@@ -156,7 +159,22 @@ export function useCrudList<TRecord extends CrudRecord>({
     return () => {
       active = false;
     };
-  }, [enabled, page, size, paramsKey, reloadVersion, apiRef, resource, paramsRef, onErrorRef, commitPage]);
+  }, [
+    enabled,
+    page,
+    size,
+    paramsKey,
+    reloadVersion,
+    apiRef,
+    resource,
+    keys.page,
+    keys.size,
+    keys.rows,
+    keys.total,
+    paramsRef,
+    onErrorRef,
+    commitPage,
+  ]);
 
   const reload = useCallback(() => {
     setReloadVersion((value) => value + 1);

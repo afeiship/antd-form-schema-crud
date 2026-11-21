@@ -54,8 +54,9 @@ posts_index({ page, size, ...params }) // => { rows, total }
 ```
 
 - `resource="posts"` 自动解析 `nx.$api.posts_index`；也可以传 `api.index`。
-- `page`、`size` 由组件控制，`params` 里的同名值会被覆盖。
-- 响应必须是 `{ rows, total }`；外层 `data` 解包放在 API 适配层。
+- `page`、`size` 由组件控制，`params` 里的同名字段会被覆盖。
+- 默认响应是 `{ rows, total }`；外层 `data` 解包放在 API 适配层。
+- 请求和响应字段名可在项目入口全局配置一次，默认仍是 `page / size / rows / total`。
 - 服务端分页；`presets` 只配置列展示，不改变表单字段。
 - 列表不依赖 React Router，跳转由 `onCreate / onEdit` 交给业务。
 - 行内只有编辑和删除，不提供查看按钮，也不响应整行点击。
@@ -106,7 +107,7 @@ export const postListPresets: ListPresets = {
 
 ## Project defaults
 
-`configureSchemaCrudForm` 只作用于 `SchemaCrudForm`，列表有独立的默认值（`pageSize=10`、`rowKey='id'`、`confirmDelete=true`）。
+`configureSchemaCrudForm` 只作用于 `SchemaCrudForm`，列表有独立的项目级配置。列表默认值：`pageSize=10`、`rowKey='id'`、`confirmDelete=true`、表格 `size='small'`。
 
 ```ts
 import {
@@ -127,9 +128,32 @@ configureSchemaCrudForm({
 - `getSchemaCrudFormDefaults()` 返回当前默认值的副本。
 - `resetSchemaCrudFormDefaults()` 清空默认值，主要用于测试。
 
+列表请求和响应 key 的项目级配置：
+
+```ts
+import {
+  configureSchemaCrudList,
+  getSchemaCrudListDefaults,
+  resetSchemaCrudListDefaults,
+} from '@jswork/antd-form-schema-crud';
+
+configureSchemaCrudList({
+  keys: {
+    page: 'pageNo',
+    size: 'pageSize',
+    rows: 'list',
+    total: 'count',
+  },
+});
+// GET: posts_index({ pageNo, pageSize, ...params })
+// Response: { list, count }
+```
+
+只传需要改的 key；未传的继续使用默认值。`getSchemaCrudListDefaults()` 返回合并后的四个 key，`resetSchemaCrudListDefaults()` 恢复默认。
+
 ## Exports
 
 - 组件：`SchemaCrudForm`、`AntdFormSchemaCrudForm`、`SchemaCrudList`
-- 全局配置：`configureSchemaCrudForm`、`getSchemaCrudFormDefaults`、`resetSchemaCrudFormDefaults`
+- 全局配置：`configureSchemaCrudForm`、`getSchemaCrudFormDefaults`、`resetSchemaCrudFormDefaults`、`configureSchemaCrudList`、`getSchemaCrudListDefaults`、`resetSchemaCrudListDefaults`
 - 工具：`resolveApi`、`checkRequirement`、`checkListRequirement`、`errorMessage`、`getNxApi`
 - 类型：`SchemaCrudFormProps`、`SchemaCrudListProps`、`CrudApi`、`CrudListParams`、`CrudListResult`、`ListPresets`、`CrudSuccessEvent` 等

@@ -1,4 +1,4 @@
-import type { CrudActions, CrudFormProps } from './types';
+import type { CrudActions, CrudFormProps, CrudListKeys } from './types';
 import type { ReactNode } from 'react';
 
 /**
@@ -17,6 +17,55 @@ export interface SchemaCrudFormDefaults {
 }
 
 let globalDefaults: SchemaCrudFormDefaults = {};
+
+export interface SchemaCrudListDefaults {
+  /** Request and response key names. Omitted keys keep the defaults. */
+  keys?: Partial<CrudListKeys>;
+}
+
+const DEFAULT_LIST_KEYS: CrudListKeys = {
+  page: 'page',
+  size: 'size',
+  rows: 'rows',
+  total: 'total',
+};
+
+let globalListDefaults: SchemaCrudListDefaults = {};
+
+function resolveListKey(value: unknown, fallback: string): string {
+  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
+/** Effective list key names after merging project-level defaults. */
+export function getSchemaCrudListKeys(): CrudListKeys {
+  const keys = globalListDefaults.keys ?? {};
+  return {
+    page: resolveListKey(keys.page, DEFAULT_LIST_KEYS.page),
+    size: resolveListKey(keys.size, DEFAULT_LIST_KEYS.size),
+    rows: resolveListKey(keys.rows, DEFAULT_LIST_KEYS.rows),
+    total: resolveListKey(keys.total, DEFAULT_LIST_KEYS.total),
+  };
+}
+
+/** Merge project-level list defaults. Usually called once near the API setup. */
+export function configureSchemaCrudList(defaults: SchemaCrudListDefaults): void {
+  if (defaults.keys !== undefined) {
+    globalListDefaults = {
+      ...globalListDefaults,
+      keys: { ...globalListDefaults.keys, ...defaults.keys },
+    };
+  }
+}
+
+/** Return effective list defaults as a copy. */
+export function getSchemaCrudListDefaults(): SchemaCrudListDefaults {
+  return { keys: getSchemaCrudListKeys() };
+}
+
+/** Remove all project-level list defaults. */
+export function resetSchemaCrudListDefaults(): void {
+  globalListDefaults = {};
+}
 
 /** Merge project-level defaults. Top-level keys replace, matching configureSchemaForm. */
 export function configureSchemaCrudForm(defaults: SchemaCrudFormDefaults): void {

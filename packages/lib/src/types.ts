@@ -9,6 +9,14 @@ export type CrudAction = 'load' | 'create' | 'update' | 'delete';
 export type CrudRecord = Record<string, any>;
 export type CrudValues = Record<string, any>;
 
+/** Configurable request/response keys for resource list. */
+export interface CrudListKeys {
+  page: string;
+  size: string;
+  rows: string;
+  total: string;
+}
+
 /** Fixed payload for resource list requests. */
 export interface CrudListParams {
   page: number;

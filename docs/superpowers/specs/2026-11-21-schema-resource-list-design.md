@@ -35,8 +35,8 @@
 ### 值得吸收
 
 - 根容器是 `Card`，标题在 `Card.title`，动作在 `Card.extra`。
-- 固定调用 `{resource}_index`，payload 包含 `{ page, size }`。
-- 响应固定 `{ rows, total }`。
+- 固定调用 `{resource}_index`，payload 默认包含 `{ page, size }`，字段名可全局配置。
+- 响应默认 `{ rows, total }`，字段名可全局配置。
 - 表格默认 `bordered`、`size="small"`，服务端分页。
 - 卡片头部有新建、刷新、返回这类资源级动作。
 - 行内可以有编辑、删除操作。
@@ -61,6 +61,21 @@
 - 删除支持两种入口：列表行内删除，或详情页 `SchemaCrudForm` 删除。
 - 列表加载、空数据、接口错误、分页请求竞态都有明确状态。
 - 示例使用 React Router，把列表、新建、详情、编辑四个页面串起来。
+
+## 全局字段名
+
+项目级配置只做一次，默认值就是当前行为：
+
+```ts
+configureSchemaCrudList({
+  keys: { page: 'page', size: 'size', rows: 'rows', total: 'total' },
+});
+```
+
+- `page` / `size` 决定请求 payload 的分页字段名。
+- `rows` / `total` 决定 `${resource}_index` 响应里列表数据和总数的字段名。
+- 未传的 key 保持默认；`getSchemaCrudListDefaults()` 返回合并后的四个 key；`resetSchemaCrudListDefaults()` 恢复默认。
+- 组件内部统一归一化成 `{ rows, total }`，后续列、分页、删除逻辑不感知外部字段名。
 
 ## 非目标
 

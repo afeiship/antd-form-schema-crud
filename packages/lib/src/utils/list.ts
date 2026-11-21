@@ -1,5 +1,12 @@
 import type { Key } from 'react';
-import type { CrudId, CrudListResult, CrudRecord, ListPresetField, ListPresets } from '../types';
+import type {
+  CrudId,
+  CrudListKeys,
+  CrudListResult,
+  CrudRecord,
+  ListPresetField,
+  ListPresets,
+} from '../types';
 
 /** Stable params key so an inline `params={{ status }}` does not refetch on every render. */
 export function stableStringify(value: unknown): string {
@@ -39,19 +46,23 @@ export function getRecordId<TRecord extends CrudRecord>(record: TRecord): CrudId
 
 export function assertListResult<TRecord extends CrudRecord>(
   data: unknown,
-  resource?: string
+  resource?: string,
+  keys: CrudListKeys = { page: 'page', size: 'size', rows: 'rows', total: 'total' }
 ): CrudListResult<TRecord> {
   const name = resource ? `${resource}_index` : 'index';
+  const shape = `{ ${keys.rows}, ${keys.total} }`;
   if (!data || typeof data !== 'object') {
-    throw new Error(`${name} 返回结构必须是 { rows, total }。`);
+    throw new Error(`${name} 返回结构必须是 ${shape}。`);
   }
 
-  const result = data as Partial<CrudListResult<TRecord>>;
-  if (!Array.isArray(result.rows) || typeof result.total !== 'number' || !Number.isFinite(result.total)) {
-    throw new Error(`${name} 返回结构必须是 { rows, total }。`);
+  const result = data as Record<string, unknown>;
+  const rows = result[keys.rows];
+  const total = result[keys.total];
+  if (!Array.isArray(rows) || typeof total !== 'number' || !Number.isFinite(total)) {
+    throw new Error(`${name} 返回结构必须是 ${shape}。`);
   }
 
-  return { rows: result.rows, total: result.total };
+  return { rows: rows as TRecord[], total };
 }
 
 type OptionInput =

@@ -1,7 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import type { FormSchema } from '@jswork/antd-form-schema';
-import { SchemaCrudList } from '../src';
+import {
+  SchemaCrudList,
+  configureSchemaCrudList,
+  getSchemaCrudListDefaults,
+  resetSchemaCrudListDefaults,
+} from '../src';
 import type { CrudListParams, CrudSuccessEvent } from '../src';
 
 type Row = { id: number; name: string; status: string; secret?: string };
@@ -33,6 +38,7 @@ const makeApi = () => ({
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 afterEach(() => {
+  resetSchemaCrudListDefaults();
   vi.restoreAllMocks();
 });
 
@@ -121,6 +127,42 @@ describe('list basics', () => {
 });
 
 describe('pagination and responses', () => {
+  it('uses globally configured page, size, rows and total keys', async () => {
+    configureSchemaCrudList({
+      keys: { page: 'pageNo', size: 'pageSize', rows: 'list', total: 'count' },
+    });
+    expect(getSchemaCrudListDefaults()).toEqual({
+      keys: { page: 'pageNo', size: 'pageSize', rows: 'list', total: 'count' },
+    });
+
+    const api = {
+      index: vi.fn(async ({ pageNo }: Record<string, any>) => ({
+        list: pageNo === 1 ? rows : [{ id: 3, name: 'Page2', status: 'active' }],
+        count: 11,
+      })),
+    };
+    render(<SchemaCrudList schema={schema} api={api} />);
+
+    await waitFor(() => expect(api.index).toHaveBeenLastCalledWith({ pageNo: 1, pageSize: 10 }));
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Page 2' }));
+    await waitFor(() => expect(api.index).toHaveBeenLastCalledWith({ pageNo: 2, pageSize: 10 }));
+    expect(await screen.findByText('Page2')).toBeInTheDocument();
+  });
+
+  it('merges partial list keys and resets to the current defaults', () => {
+    configureSchemaCrudList({ keys: { page: 'current' } });
+    expect(getSchemaCrudListDefaults()).toEqual({
+      keys: { page: 'current', size: 'size', rows: 'rows', total: 'total' },
+    });
+
+    resetSchemaCrudListDefaults();
+    expect(getSchemaCrudListDefaults()).toEqual({
+      keys: { page: 'page', size: 'size', rows: 'rows', total: 'total' },
+    });
+  });
+
   it('switches pages with server-side pagination', async () => {
     const api = makeApi();
     api.index.mockImplementation(async ({ page }: CrudListParams) => ({
