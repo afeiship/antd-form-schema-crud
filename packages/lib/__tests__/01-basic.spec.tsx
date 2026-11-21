@@ -396,7 +396,9 @@ describe('delete', () => {
     fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
     await screen.findByLabelText('姓名');
 
-    fireEvent.click(screen.getByRole('button', { name: /删\s*除/ }));
+    const deleteButton = screen.getByRole('button', { name: /删\s*除/ });
+    expect(deleteButton.closest('.antd-form-schema-crud__footer-right')).not.toBeNull();
+    fireEvent.click(deleteButton);
     expect(api.destroy).not.toHaveBeenCalled();
 
     fireEvent.click(await screen.findByRole('button', { name: /确\s*定/ }));

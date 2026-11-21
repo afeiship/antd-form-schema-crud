@@ -20,18 +20,10 @@
   background: #fafafa;
 }
 
-.antd-form-schema-crud__footer-left,
 .antd-form-schema-crud__footer-right {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.antd-form-schema-crud__footer-left:empty {
-  display: none;
-}
-
-.antd-form-schema-crud__footer-right {
   margin-left: auto;
 }
 

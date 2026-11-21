@@ -359,8 +359,8 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 | 模式     | 左侧 | 右侧    |
 | ------ | -- | ----- |
 | create |     | 取消、创建 |
-| edit   | 删除 | 取消、保存 |
-| view   | 删除 | 返回、编辑 |
+| edit   |     | 删除、取消、保存 |
+| view   |     | 删除、返回、编辑 |
 
 
 
@@ -502,7 +502,7 @@ onSuccess({ action: 'create', result, values });
 
 
 * footer 是独立工具栏：上边框、浅灰背景、12px 24px 内边距，负外边距贴合 Card 底部；
-* 所有次操作和主操作靠右排列，删除独占左侧；
+* 所有操作同一组靠右排列，删除放在组内最前；
 * 表单横向布局，标签列固定 `120px`，控件列 `flex: 1`；
 * CSS 必须写成扁平 class 选择器，禁止 `&__x` 嵌套；Lightning CSS 会把 `&__body` 编译成错误的 `__body.class`；
 

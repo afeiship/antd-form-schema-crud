@@ -128,28 +128,22 @@ export function SchemaFooter({
         })
       : null;
 
-  const left: ReactNode[] = [];
-  const right: ReactNode[] = [];
+  const actionsNode: ReactNode[] = [];
 
   if (mode === 'create') {
-    if (cancel) right.push(cancel);
-    if (save) right.push(save);
+    if (cancel) actionsNode.push(cancel);
+    if (save) actionsNode.push(save);
   } else if (mode === 'edit') {
-    if (remove) left.push(remove);
-    if (cancel) right.push(cancel);
-    if (save) right.push(save);
+    if (remove) actionsNode.push(remove);
+    if (cancel) actionsNode.push(cancel);
+    if (save) actionsNode.push(save);
   } else {
-    if (remove) left.push(remove);
-    if (cancel) right.push(cancel);
-    if (edit) right.push(edit);
+    if (remove) actionsNode.push(remove);
+    if (cancel) actionsNode.push(cancel);
+    if (edit) actionsNode.push(edit);
   }
 
-  if (left.length === 0 && right.length === 0) return null;
+  if (actionsNode.length === 0) return null;
 
-  return (
-    <>
-      <div className={`${CLASS_NAME}__footer-left`}>{left}</div>
-      <div className={`${CLASS_NAME}__footer-right`}>{right}</div>
-    </>
-  );
+  return <div className={`${CLASS_NAME}__footer-right`}>{actionsNode}</div>;
 }
