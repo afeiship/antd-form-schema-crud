@@ -31,17 +31,14 @@ pnpm add @jswork/antd-form-schema-crud
   export default App;
   ```
 
-## preview
-- https://afeiship.github.io/antd-form-schema-crud/
-
 ## license
-Code released under [the MIT license](https://github.com/afeiship/antd-form-schema-crud/blob/master/LICENSE.txt).
+Code released under [the MIT license](https://github.com/afeiship/antd-form-schema-crud/blob/main/LICENSE.txt).
 
 [version-image]: https://img.shields.io/npm/v/@jswork/antd-form-schema-crud
 [version-url]: https://npmjs.org/package/@jswork/antd-form-schema-crud
 
 [license-image]: https://img.shields.io/npm/l/@jswork/antd-form-schema-crud
-[license-url]: https://github.com/afeiship/antd-form-schema-crud/blob/master/LICENSE.txt
+[license-url]: https://github.com/afeiship/antd-form-schema-crud/blob/main/LICENSE.txt
 
 [download-image]: https://img.shields.io/npm/dm/@jswork/antd-form-schema-crud
 [download-url]: https://www.npmjs.com/package/@jswork/antd-form-schema-crud

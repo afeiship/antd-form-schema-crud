@@ -10,6 +10,9 @@ export default defineConfig({
   dts: true,
   clean: true,
   cjsInterop: true, // keeps `export =` in index.d.ts for CJS consumers
+  // antd and the schema renderer stay external: bundling them would duplicate
+  // React context providers and break ConfigProvider / theme inheritance.
+  external: ['react', 'react-dom', 'antd', '@jswork/antd-form-schema', 'classnames'],
 
   // react
   sourcemap: true,
