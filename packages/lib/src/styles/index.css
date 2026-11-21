@@ -12,8 +12,6 @@
 .antd-form-schema-crud__footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
   margin: 20px -24px -24px;
   padding: 12px 24px;
   border-top: 1px solid #f0f0f0;
@@ -29,10 +27,6 @@
 
 .antd-form-schema-crud__actions .ant-btn-link {
   padding-inline: 4px;
-}
-
-.antd-form-schema-crud__actions .ant-space {
-  gap: 0 !important;
 }
 
 .antd-form-schema-crud--list .ant-table-wrapper {
