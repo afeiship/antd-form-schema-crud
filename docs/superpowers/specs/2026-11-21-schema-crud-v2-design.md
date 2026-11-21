@@ -558,7 +558,7 @@ const handleSuccess = async (event: CrudSuccessEvent) => {
 
 ## 迁移
 
-这是破坏性变更，按 `2.0.0` 发布。迁移步骤：
+这是破坏性变更，版本保持 `2.0.0`。迁移步骤：
 
 
 

@@ -595,7 +595,7 @@ export const postListPresets: ListPresets = {
 - 给 `CrudApi` 增加可选 `index`，不破坏现有调用。
 - 原 `SchemaCrud` 改名为 `SchemaCrudForm`；`2.0.0` 尚未发布，不保留旧名别名。
 - 新增 `SchemaCrudList`，不修改 `SchemaCrudForm` props。
-- 列表能力按 `2.x` 发布。
+- 版本保持 `2.0.0` 不变；包尚未发布，列表能力和改名都直接进同一个版本，不单独升版本号。
 
 ## 待确认
 
