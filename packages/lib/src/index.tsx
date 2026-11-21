@@ -1,29 +1,21 @@
-import cx from 'classnames';
-import { ReactNode, FC, HTMLAttributes } from "react";
+export { SchemaCrud } from './schema-crud';
+export { resolveApi, checkRequirement, errorMessage, getNxApi } from './resolve-api';
+export type {
+  CrudMode,
+  CrudId,
+  CrudAction,
+  CrudRecord,
+  CrudValues,
+  CrudApi,
+  CrudActionConfig,
+  CrudActions,
+  CrudFormProps,
+  SchemaCrudProps,
+} from './types';
 
-const CLASS_NAME = "antd-form-schema-crud";
+import { SchemaCrud } from './schema-crud';
 
-export type AntdFormSchemaCrudProps = {
-  /**
-   * The extended className for component.
-   * @default ''
-   */
-  className?: string;
-  /**
-   * The children element.
-   */
-  children?: ReactNode;
-} & HTMLAttributes<HTMLDivElement>;
+/** Backward-compatible alias; the previous default export name. */
+export const AntdFormSchemaCrud = SchemaCrud;
 
-type AntdFormSchemaCrudComponent = FC<AntdFormSchemaCrudProps> & { version?: string };
-
-const AntdFormSchemaCrud: AntdFormSchemaCrudComponent = ({ className, children, ...rest }) => (
-  <div {...rest} data-component={CLASS_NAME} className={cx(CLASS_NAME, className)}>
-    {children}
-  </div>
-);
-
-AntdFormSchemaCrud.displayName = CLASS_NAME;
-AntdFormSchemaCrud.version = __VERSION__;
-
-export default AntdFormSchemaCrud;
+export default SchemaCrud;
