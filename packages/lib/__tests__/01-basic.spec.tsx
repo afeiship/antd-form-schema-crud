@@ -301,6 +301,61 @@ describe('edit', () => {
     expect(screen.getByText('记录详情')).toBeInTheDocument();
   });
 
+  it('saves with Cmd+S on macOS in create mode', async () => {
+    const api = makeApi();
+    render(<SchemaCrudForm schema={schema} api={api} />);
+
+    fireEvent.change(screen.getByLabelText('姓名'), { target: { value: 'Ada' } });
+    const allowed = fireEvent.keyDown(window, { key: 's', code: 'KeyS', metaKey: true });
+
+    expect(allowed).toBe(false);
+    await waitFor(() =>
+      expect(api.create).toHaveBeenCalledWith({ name: 'Ada', status: 'active' })
+    );
+  });
+
+  it('saves with Ctrl+S on Windows/Linux in edit mode', async () => {
+    const api = makeApi();
+    render(<SchemaCrudForm schema={schema} api={api} id={7} />);
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+    fireEvent.change(await screen.findByLabelText('姓名'), { target: { value: 'Grace' } });
+
+    const allowed = fireEvent.keyDown(window, { key: 's', code: 'KeyS', ctrlKey: true });
+
+    expect(allowed).toBe(false);
+    await waitFor(() =>
+      expect(api.update).toHaveBeenCalledWith({ id: 7, name: 'Grace', status: 'active' })
+    );
+  });
+
+  it('suppresses the browser dialog but skips saving when edit has no changes', async () => {
+    const api = makeApi();
+    render(<SchemaCrudForm schema={schema} api={api} id={7} />);
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+    await screen.findByLabelText('姓名');
+
+    const allowed = fireEvent.keyDown(window, { key: 's', code: 'KeyS', ctrlKey: true });
+    await flush();
+
+    expect(allowed).toBe(false);
+    expect(api.update).not.toHaveBeenCalled();
+  });
+
+  it('leaves the shortcut alone in view mode', async () => {
+    const api = makeApi();
+    render(<SchemaCrudForm schema={schema} api={api} id={7} />);
+
+    await screen.findByText('Ada');
+    const allowed = fireEvent.keyDown(window, { key: 's', code: 'KeyS', metaKey: true });
+
+    expect(allowed).toBe(true);
+    expect(api.update).not.toHaveBeenCalled();
+  });
+
   it('does not treat an onSuccess rejection as an update failure', async () => {
     const api = makeApi();
     api.show

@@ -13,8 +13,7 @@ interface SchemaFooterProps {
   hasDestroy: boolean;
   submitLoading: boolean;
   deleteLoading: boolean;
-  formReady: boolean;
-  dirty: boolean;
+  canSave: boolean;
   available: boolean;
   canCancel: boolean;
   confirmDelete: boolean;
@@ -30,8 +29,7 @@ export function SchemaFooter({
   hasDestroy,
   submitLoading,
   deleteLoading,
-  formReady,
-  dirty,
+  canSave,
   available,
   canCancel,
   confirmDelete,
@@ -85,8 +83,10 @@ export function SchemaFooter({
       type: 'primary',
       htmlType: 'button',
       icon: <SaveOutlined />,
+      title: '保存快捷键：Ctrl/⌘ + S',
+      'aria-keyshortcuts': 'Control+S Meta+S',
       loading: submitLoading,
-      disabled: busy || !formReady || (mode === 'edit' && !dirty),
+      disabled: !canSave,
     },
   });
 

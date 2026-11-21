@@ -10,6 +10,7 @@ import { useCrudForm } from '../hooks/use-crud-form';
 import { useCrudMode } from '../hooks/use-crud-mode';
 import { useLatest } from '../hooks/use-latest';
 import { useRecordLoader } from '../hooks/use-record-loader';
+import { useSaveShortcut } from '../hooks/use-save-shortcut';
 import type { CrudRecord, CrudValues, SchemaCrudFormProps } from '../types';
 import { alertTitleProps } from '../utils/antd';
 import { selectSchemaFields } from '../utils/schema';
@@ -122,6 +123,20 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
     () => (mode === 'view' ? selectSchemaFields(loadedSchema, viewFields) : loadedSchema),
     [loadedSchema, mode, viewFields]
   );
+  const canSave =
+    available &&
+    mode !== 'view' &&
+    resolvedActions?.save !== false &&
+    !submitLoading &&
+    !deleteLoading &&
+    formReady &&
+    (mode === 'create' || dirty);
+
+  useSaveShortcut({
+    enabled: available && mode !== 'view' && resolvedActions?.save !== false,
+    canSave,
+    onSave: submit,
+  });
 
   const handleCancel = useCallback(() => {
     if (mode === 'edit') {
@@ -160,8 +175,7 @@ function SchemaCrudFormRender<TRecord extends CrudRecord = CrudRecord>(
         hasDestroy={Boolean(resolvedApi.destroy)}
         submitLoading={submitLoading}
         deleteLoading={deleteLoading}
-        formReady={formReady}
-        dirty={dirty}
+        canSave={canSave}
         available={available}
         canCancel={canCancel}
         confirmDelete={resolvedConfirmDelete}

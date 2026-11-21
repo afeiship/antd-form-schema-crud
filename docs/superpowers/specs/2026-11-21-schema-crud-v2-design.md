@@ -58,7 +58,7 @@ v2 明确不引入：
 
 * 不做 `lang` /i18n：默认中文，文案通过 `actions.*.text` 覆盖。
 
-* 不做热键保存：需要时由业务在页面层监听。
+* 快捷键只做保存（Cmd/Ctrl+S），不做其他全局热键；业务不需要在页面层监听。
 
 * 不做 `payloadFields`：提交前裁剪字段优先用 `schema.normalizeValues`；协议差异用 `api` 适配。
 
@@ -389,7 +389,19 @@ const resolvedMode = mode ?? (id === undefined || id === null ? 'create' : 'view
 
 * 保存成功、重新加载、切换到预览后重置 `touched=false`。
 
-* 创建态不做未保存判断，创建按钮始终可用。
+* 创建态不做未保存判断，表单 ready 后创建按钮可用。
+
+### 保存快捷键
+
+* 新建、编辑态按 `Cmd+S`（macOS）或 `Ctrl+S`（Windows/Linux）触发与保存按钮相同的提交路径。
+
+* 拦截浏览器默认的保存网页行为；`Shift`、`Alt` 组合和长按重复事件不触发。
+
+* 与保存按钮共用 `canSave`：表单 ready、无提交/删除请求、编辑态有变更；不满足时只阻止浏览器默认行为，不发请求。
+
+* 详情态不绑定快捷键，不拦截浏览器行为。
+
+* 保存按钮带 `aria-keyshortcuts="Control+S Meta+S"`，不额外增加视觉提示。
 
 使用 `fast-deep-equal` 做未保存判断，与参考项目行为一致。
 

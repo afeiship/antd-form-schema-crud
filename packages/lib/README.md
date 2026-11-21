@@ -126,6 +126,8 @@ export const postPageConfig = {
 - `id` 为空进入创建，有值进入详情；不传 `mode` 时，详情里的“编辑”由组件内部切换。
 - 表单默认横向布局，标签宽 `120px`；要改宽度传 `formProps.labelCol`。
 - 详情可用 `viewFields` 筛选字段，组件内按声明顺序展示；新建和编辑不受影响。
+- 新建、编辑支持 `Cmd+S`（macOS）/ `Ctrl+S`（Windows/Linux）保存，并拦截浏览器自带的保存网页；详情态不绑定快捷键。
+- 快捷键与保存按钮共用同一套可保存条件：表单 ready、无请求进行中、编辑态有变更；校验不通过时不会发请求。
 - 标题左侧有图标返回；底部是独立工具栏：删除、取消/返回与主操作统一靠右，删除排在最前。
 - 创建默认值写在 `schema.initialValues`，提交前转换写在 `schema.normalizeValues`。
 - 成功回调统一为 `onSuccess(event)`，按 `event.action` 区分 `create / update / delete`。

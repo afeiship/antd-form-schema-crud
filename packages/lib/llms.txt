@@ -52,6 +52,8 @@ Route-backed pagination: pass controlled `page` and write it back in `onPageChan
 
 `id` absent => create. `id` present => view by default; internal edit switch. Controlled mode: pass `mode` and `onModeChange`.
 
+Create/edit save with Cmd+S (macOS) or Ctrl+S (Windows/Linux); the browser Save dialog is suppressed. The shortcut shares the save button's conditions (form ready, no request in flight, dirty in edit). View mode does not bind it.
+
 Title bar: icon-only back on the left when `onBack` exists. Footer toolbar: all actions are right-aligned in one group, delete first, then cancel/back, then the primary action. It has a top border and a light background.
 
 Form defaults: `layout="horizontal"`, `labelCol={{ flex: '120px' }}`, `wrapperCol={{ flex: 1 }}`. Override through `formProps`. The title has an icon-only back; footer carries the text actions. `Card.extra` is caller-owned content.
