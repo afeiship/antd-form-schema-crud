@@ -1,5 +1,5 @@
 import { App as AntdApp } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SchemaCrudList, errorMessage } from '@jswork/antd-form-schema-crud';
 import type { CrudSuccessEvent } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
@@ -7,9 +7,30 @@ import { PageHeader } from './components/page-header';
 import { postListPresets } from './list-presets';
 import { postSchema } from './schema';
 
+const DEFAULT_PAGE_SIZE = 10;
+
+function readPositive(value: string | null, fallback: number) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 export function PostsListPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { message } = AntdApp.useApp();
+  const page = readPositive(searchParams.get('page'), 1);
+  const pageSize = readPositive(searchParams.get('size'), DEFAULT_PAGE_SIZE);
+
+  const handlePageChange = (nextPage: number, nextPageSize: number) => {
+    const next = new URLSearchParams(searchParams);
+    if (nextPage <= 1) next.delete('page');
+    else next.set('page', String(nextPage));
+
+    if (nextPageSize === DEFAULT_PAGE_SIZE) next.delete('size');
+    else next.set('size', String(nextPageSize));
+
+    setSearchParams(next);
+  };
 
   const handleSuccess = (event: CrudSuccessEvent) => {
     if (event.action === 'delete') message.success('删除成功');
@@ -28,6 +49,9 @@ export function PostsListPage() {
           schema={postSchema}
           presets={postListPresets}
           title="文章"
+          page={page}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
           onCreate={() => navigate('/posts/new')}
           onView={(record) => navigate(`/posts/${record.id}`)}
           onEdit={(record) => navigate(`/posts/${record.id}/edit`)}

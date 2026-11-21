@@ -31,6 +31,23 @@ import '@jswork/antd-form-schema-crud/style.css';
 />
 ```
 
+页码写回路由的最小写法：
+
+```tsx
+const [searchParams, setSearchParams] = useSearchParams();
+const page = Number(searchParams.get('page') ?? 1);
+
+<SchemaCrudList
+  page={page}
+  onPageChange={(nextPage) => {
+    const next = new URLSearchParams(searchParams);
+    if (nextPage <= 1) next.delete('page');
+    else next.set('page', String(nextPage));
+    setSearchParams(next);
+  }}
+/>
+```
+
 固定接口约定：
 
 ```ts
@@ -43,6 +60,7 @@ posts_index({ page, size, ...params }) // => { rows, total }
 - 服务端分页；`presets` 只配置列展示，不改变表单字段。
 - 列表不依赖 React Router，跳转由 `onCreate / onView / onEdit` 交给业务。
 - 行内删除默认开启，带 `Popconfirm`；删除当前页最后一条会自动回退一页。
+- 需要刷新后保留页码时，把 `page` 受控传入，并用 `onPageChange` 写回路由；`onPageChange` 也会覆盖筛选重置和删除回退。
 
 ### 详情 / 新建 / 编辑
 

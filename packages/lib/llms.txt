@@ -37,6 +37,8 @@ and expects:
 
 List does not import react-router. Navigation is entirely callback-driven.
 
+Route-backed pagination: pass controlled `page` and write it back in `onPageChange(page, pageSize)`. The list initializes from `page`, so a refresh keeps the current page. The callback also fires on params reset and delete page rollback.
+
 ## Minimal form
 
 ```tsx

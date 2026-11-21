@@ -174,6 +174,12 @@
 - example `tsc`、`vite build` 通过。
 - 路由跳转路径与 spec 一致。
 
+## 阶段 6.1：路由页码
+
+- `SchemaCrudList` 增加受控 `page` 和 `onPageChange(page, pageSize)`。
+- 示例用 `useSearchParams` 把 `page`、`size` 写进 URL。
+- 覆盖刷新保留页码、外部 page 变化和翻页回调测试。
+
 ## 阶段 7：收尾
 
 任务：

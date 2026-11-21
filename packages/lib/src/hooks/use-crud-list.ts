@@ -22,8 +22,10 @@ interface UseCrudListOptions<TRecord extends CrudRecord> {
   /** Always points at the latest merged API. */
   apiRef: MutableRefObject<CrudApi<TRecord>>;
   params?: Record<string, any>;
+  controlledPage?: number;
   pageSize: number;
   rowKey: keyof TRecord | ((record: TRecord) => Key);
+  onPageChange?: (page: number, pageSize: number) => void;
   onSuccess?: (event: CrudSuccessEvent) => void;
   onError?: (error: unknown, action: CrudAction) => void;
 }
@@ -52,12 +54,15 @@ export function useCrudList<TRecord extends CrudRecord>({
   resource,
   apiRef,
   params,
+  controlledPage,
   pageSize,
   rowKey,
+  onPageChange,
   onSuccess,
   onError,
 }: UseCrudListOptions<TRecord>): CrudListResultState<TRecord> {
-  const [page, setPage] = useState(1);
+  const initialPage = controlledPage && controlledPage > 0 ? controlledPage : 1;
+  const [page, setPage] = useState(initialPage);
   const [size, setSize] = useState(pageSize);
   const [rows, setRows] = useState<TRecord[]>([]);
   const [total, setTotal] = useState(0);
@@ -74,16 +79,31 @@ export function useCrudList<TRecord extends CrudRecord>({
   const paramsRef = useLatest(params);
   const onErrorRef = useLatest(onError);
   const onSuccessRef = useLatest(onSuccess);
+  const onPageChangeRef = useLatest(onPageChange);
   const paramsKey = useMemo(() => stableStringify(params ?? {}), [params]);
   const previousParamsKeyRef = useRef(paramsKey);
   const previousPageSizeRef = useRef(pageSize);
 
   useEffect(() => {
+    if (controlledPage === undefined || !Number.isFinite(controlledPage)) return;
+    const nextPage = controlledPage > 0 ? controlledPage : 1;
+    setPage((current) => (current === nextPage ? current : nextPage));
+  }, [controlledPage]);
+
+  const commitPage = useCallback(
+    (nextPage: number, nextSize = size) => {
+      setPage(nextPage);
+      onPageChangeRef.current?.(nextPage, nextSize);
+    },
+    [size, onPageChangeRef]
+  );
+
+  useEffect(() => {
     if (previousPageSizeRef.current === pageSize) return;
     previousPageSizeRef.current = pageSize;
     setSize(pageSize);
-    setPage(1);
-  }, [pageSize]);
+    if (page !== 1) commitPage(1, pageSize);
+  }, [pageSize, page, commitPage]);
 
   useEffect(() => {
     if (!enabled) {
@@ -100,7 +120,7 @@ export function useCrudList<TRecord extends CrudRecord>({
     if (previousParamsKeyRef.current !== paramsKey) {
       previousParamsKeyRef.current = paramsKey;
       if (page !== 1) {
-        setPage(1);
+        commitPage(1);
         return;
       }
     }
@@ -136,7 +156,7 @@ export function useCrudList<TRecord extends CrudRecord>({
     return () => {
       active = false;
     };
-  }, [enabled, page, size, paramsKey, reloadVersion, apiRef, resource, paramsRef, onErrorRef]);
+  }, [enabled, page, size, paramsKey, reloadVersion, apiRef, resource, paramsRef, onErrorRef, commitPage]);
 
   const reload = useCallback(() => {
     setReloadVersion((value) => value + 1);
@@ -146,12 +166,12 @@ export function useCrudList<TRecord extends CrudRecord>({
     (nextPage: number, nextPageSize: number) => {
       if (nextPageSize !== size) {
         setSize(nextPageSize);
-        setPage(1);
+        commitPage(1, nextPageSize);
         return;
       }
-      setPage(nextPage);
+      commitPage(nextPage);
     },
-    [size]
+    [size, commitPage]
   );
 
   const emitSuccess = useCallback(
@@ -189,12 +209,12 @@ export function useCrudList<TRecord extends CrudRecord>({
 
       await emitSuccess({ action: 'delete', result });
       if (rows.length === 1 && page > 1) {
-        setPage(page - 1);
+        commitPage(page - 1);
       } else {
         reload();
       }
     },
-    [apiRef, rowKey, rows.length, page, reload, emitSuccess, onErrorRef]
+    [apiRef, rowKey, rows.length, page, reload, emitSuccess, onErrorRef, commitPage]
   );
 
   const clearActionError = useCallback(() => setActionError(null), []);

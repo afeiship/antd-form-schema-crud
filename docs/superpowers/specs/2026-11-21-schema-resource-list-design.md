@@ -191,6 +191,8 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
 
   /** 业务筛选条件，和 page / size 一起发送。 */
   params?: Record<string, any>;
+  /** 受控页码；配合 onPageChange 把翻页写回路由。 */
+  page?: number;
   pageSize?: number;
 
   actions?: ListActions;
@@ -203,6 +205,8 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
   onCreate?: () => void;
   onView?: (record: TRecord) => void;
   onEdit?: (record: TRecord) => void;
+  /** 页码或每页条数变化时触发；包含筛选重置和删除回退。 */
+  onPageChange?: (page: number, pageSize: number) => void;
   /** 列表行删除成功后触发；component 已自动刷新当前页。 */
   onSuccess?: (event: CrudSuccessEvent) => void;
   onError?: (error: unknown, action: CrudAction) => void;
@@ -370,9 +374,10 @@ Card 内容：
 
 ### 分页
 
-- 初始 `page=1`，`pageSize` 默认 10。
+- 初始 `page=1`，`pageSize` 默认 10；传 `page` 时从该页初始化。
 - 修改 page 或 pageSize 直接重新请求。
 - `params` 变化时回到第 1 页再请求。
+- 页码或每页条数变化时调用 `onPageChange(page, pageSize)`，业务可写回路由；外部改动 `page` 时组件同步并重新请求。
 - 删除后刷新当前页；如果当前页变成空页且 `page > 1`，自动 `page - 1` 再请求。
 - 请求竞态：只接受最后一次请求的响应，旧响应丢弃。
 

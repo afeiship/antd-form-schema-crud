@@ -98,6 +98,34 @@ describe('pagination and responses', () => {
     expect(await screen.findByText('Page2')).toBeInTheDocument();
   });
 
+  it('hydrates from a controlled page and follows external page changes', async () => {
+    const api = makeApi();
+    api.index.mockImplementation(async ({ page }: CrudListParams) => ({
+      rows: [{ id: page, name: `Page${page}`, status: 'active' }],
+      total: 31,
+    }));
+
+    const { rerender } = render(<SchemaCrudList schema={schema} api={api} page={2} />);
+    await waitFor(() => expect(api.index).toHaveBeenLastCalledWith({ page: 2, size: 10 }));
+    expect(await screen.findByText('Page2')).toBeInTheDocument();
+
+    rerender(<SchemaCrudList schema={schema} api={api} page={3} />);
+    await waitFor(() => expect(api.index).toHaveBeenLastCalledWith({ page: 3, size: 10 }));
+    expect(await screen.findByText('Page3')).toBeInTheDocument();
+  });
+
+  it('reports page changes so the caller can sync the route', async () => {
+    const api = makeApi();
+    const onPageChange = vi.fn();
+    api.index.mockResolvedValue({ rows, total: 21 });
+    render(<SchemaCrudList schema={schema} api={api} page={1} onPageChange={onPageChange} />);
+
+    await screen.findByText('Ada');
+    fireEvent.click(screen.getByRole('button', { name: 'Page 2' }));
+    expect(onPageChange).toHaveBeenCalledWith(2, 10);
+    await waitFor(() => expect(api.index).toHaveBeenLastCalledWith({ page: 2, size: 10 }));
+  });
+
   it('resets to page 1 when params change and ignores stale responses', async () => {
     const api = makeApi();
     let resolveFirst!: (value: { rows: Row[]; total: number }) => void;

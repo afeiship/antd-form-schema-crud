@@ -28,6 +28,8 @@ VITE_API_TOKEN=your-token
 
 `/` 重定向到 `/posts`。示例用 `react-router-dom` 的 `BrowserRouter + Routes`；组件本身不依赖 Router。
 
+分页写进查询参数：`/posts?page=2&size=20`。刷新、前进后退都会保留页码；第 1 页和默认 `size=10` 不写进 URL。
+
 ## 接口约定
 
 `src/api/posts.ts` 按 `jsw-admin/src/shared/services/schema.ts` 的 `resources` 约定（Rails 模板）注册成 `nx.$api`：

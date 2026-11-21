@@ -135,6 +135,8 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
 
   /** Business filters, sent with page / size. */
   params?: Record<string, any>;
+  /** Controlled current page. Use with `onPageChange` to sync route state. */
+  page?: number;
   pageSize?: number;
 
   actions?: ListActions;
@@ -147,6 +149,8 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
   onCreate?: () => void;
   onView?: (record: TRecord) => void;
   onEdit?: (record: TRecord) => void;
+  /** Called whenever the page or page size changes, including params reset and delete rollback. */
+  onPageChange?: (page: number, pageSize: number) => void;
   /** Row delete success; the component has already refreshed the list. */
   onSuccess?: (event: CrudSuccessEvent) => void;
   onError?: (error: unknown, action: CrudAction) => void;
