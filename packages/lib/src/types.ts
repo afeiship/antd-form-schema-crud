@@ -93,6 +93,87 @@ export interface ListActions {
   delete?: false | CrudActionConfig;
 }
 
+/** Secondary confirmation shown before a business row action runs. */
+export interface CrudRowActionConfirm {
+  title?: ReactNode;
+  okText?: ReactNode;
+  cancelText?: ReactNode;
+}
+
+/** Second argument of `CrudRowAction.onClick`. */
+export interface CrudRowActionHandlerContext {
+  /** Row index inside the current response. */
+  index: number;
+  /** Refetch the current page, keeping page / size / params. */
+  reload: () => void;
+}
+
+/** Context handed to `CrudRowAction.render`. */
+export interface CrudRowActionContext<TRecord extends CrudRecord = CrudRecord> {
+  record: TRecord;
+  index: number;
+  /** True while the action's onClick promise is pending. */
+  loading: boolean;
+  reload: () => void;
+  /** Runs the action's onClick (after confirm when configured). */
+  run: () => void | Promise<void>;
+}
+
+/** A business row action declared on the list action column. */
+export interface CrudRowAction<TRecord extends CrudRecord = CrudRecord> {
+  /** Unique key inside the action column; also the loading / warning identity. */
+  key: string;
+  /** Button text; ignored when `render` is set. */
+  text?: ReactNode;
+  /** External href; an empty resolved value hides the item. `href` wins over `onClick`. */
+  href?: string | ((record: TRecord) => string | null | undefined);
+  /** Link target, only used with `href`; defaults to `_self`. */
+  target?: '_blank' | '_self';
+  /** Fully custom node; not wrapped in Button or Popconfirm. */
+  render?: (context: CrudRowActionContext<TRecord>) => ReactNode;
+  /** Click handler; a returned promise drives the item loading. */
+  onClick?: (record: TRecord, context: CrudRowActionHandlerContext) => void | Promise<void>;
+  /** Tooltip text; also works while disabled. */
+  tooltip?: ReactNode;
+  danger?: boolean;
+  disabled?: boolean | ((record: TRecord) => boolean);
+  hidden?: boolean | ((record: TRecord) => boolean);
+  /** Secondary confirmation; `true` uses the default title. Not used with href. */
+  confirm?: boolean | CrudRowActionConfirm;
+  /** Extra antd Button props. */
+  props?: ButtonProps;
+}
+
+/** Reference to a built-in row action; only valid in `replace` mode. */
+export interface CrudBuiltinRowAction<TRecord extends CrudRecord = CrudRecord> {
+  /** Reuses the original handler, router navigation, delete confirm and loading. */
+  builtin: 'edit' | 'delete';
+  hidden?: boolean | ((record: TRecord) => boolean);
+  disabled?: boolean | ((record: TRecord) => boolean);
+  text?: ReactNode;
+  tooltip?: ReactNode;
+  props?: ButtonProps;
+}
+
+export type CrudRowActionItem<TRecord extends CrudRecord = CrudRecord> =
+  | CrudRowAction<TRecord>
+  | CrudBuiltinRowAction<TRecord>;
+
+export type CrudRowActionsMode = 'append' | 'prepend' | 'replace';
+
+export interface CrudRowActionsConfig<TRecord extends CrudRecord = CrudRecord> {
+  /** Defaults to `prepend`. */
+  mode?: CrudRowActionsMode;
+  items: readonly CrudRowActionItem<TRecord>[];
+}
+
+export interface CrudListActionColumn {
+  /** Column title; defaults to “操作”. */
+  title?: ReactNode;
+  /** Overrides the computed width. */
+  width?: number | string;
+}
+
 /** Column presentation presets, keyed by field key. */
 export interface ListPresetField {
   /** Hide this schema-derived column; the form field is unchanged. */
@@ -260,6 +341,10 @@ export interface SchemaCrudListProps<
   keepDefaultParams?: boolean;
 
   actions?: ListActions;
+  /** Action column composition; `null` hides the whole column. */
+  rowActions?: CrudRowActionsConfig<TRecord> | null;
+  /** Action column title and width overrides. */
+  actionColumn?: CrudListActionColumn;
   confirmDelete?: boolean;
   /** Scope used by useCrudListActions; falls back to resource when omitted. */
   actionScope?: string;
