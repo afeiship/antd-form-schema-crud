@@ -7,7 +7,9 @@ Ant Design schema-driven CRUD. Two components:
 
 ## Install
 
-pnpm add @jswork/antd-form-schema-crud
+pnpm add @jswork/antd-form-schema-crud @jswork/antd-form-schema@^1.0.3
+
+@jswork/antd-form-schema is a peer dependency; install it explicitly in the host project.
 
 ## List contract
 

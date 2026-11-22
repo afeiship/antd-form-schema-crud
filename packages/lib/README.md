@@ -5,8 +5,10 @@
 ## Installation
 
 ```shell
-pnpm add @jswork/antd-form-schema-crud
+pnpm add @jswork/antd-form-schema-crud @jswork/antd-form-schema@^1.0.3
 ```
+
+`@jswork/antd-form-schema` 是 peer dependency；宿主项目需要显式安装，避免多份 schema 实例。
 
 ## Quick start
 
