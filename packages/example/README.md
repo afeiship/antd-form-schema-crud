@@ -54,33 +54,35 @@ VITE_API_TOKEN=your-token
   onCreate={() => navigate('/posts/new')}
   query={{
     defaultValues: { keywords: undefined, status: undefined },
-    urlKeys: { keywords: 'q' },
+    urlKeys: { keywords: 'q', status: 'status' },
     slots: {
-      headerStart: ({ values, setValues }) => (
-        <Select value={values.status} onChange={(status) => setValues({ status })} />
-      ),
-      headerEnd: ({ values, setValues, reset }) => (
-        <>
-          <Input.Search
-            value={values.keywords ?? ''}
-            onChange={(event) =>
-              setValues({ keywords: event.target.value.trim() || undefined })
-            }
-          />
-          <Button onClick={() => reset()}>重置</Button>
-        </>
-      ),
-      body: ({ values, reset }) =>
+      headerStart: queryPlugins.status<PostListQuery, PostStatus>({
+        options: POST_STATUS_OPTIONS,
+      }),
+      headerEnd: queryPlugins.keywords<PostListQuery>({
+        width: 220,
+        placeholder: '搜索标题 / 副标题',
+        autoFocus: true,
+      }),
+      body: ({ values, setValues, reset }) =>
         values.keywords || values.status ? (
-          <Tag closable onClose={() => reset({})}>当前筛选</Tag>
+          <Space>
+            <Tag closable onClose={() => setValues({ keywords: undefined })}>
+              关键词：{values.keywords}
+            </Tag>
+            <Tag closable onClose={() => setValues({ status: undefined })}>
+              状态：{values.status}
+            </Tag>
+            <Button type="link" onClick={() => reset()}>清空</Button>
+          </Space>
         ) : null,
     },
   }}
 />
 ```
 
-- `headerStart` 是状态筛选，`headerEnd` 是搜索和重置，`body` 展示当前筛选。
-- 查询值通过 `query.slots` 统一读写；请求固定为 `{ ...query.values, page, size }`。
+- `headerStart` 使用内置 `status` plugin，`headerEnd` 使用内置 `keywords` plugin。
+- 两个 plugin 共享同一份查询状态，但分别使用 `status` / `keywords` 两个 key。
 - `urlKeys: { keywords: 'q' }` 把关键词写入 `?q=...`；`reset()` 回到 `defaultValues` 并回第 1 页。
 - 示例的 `posts_index` 会把额外查询参数一起带到 `/api/posts`。
 - 服务端分页，默认 `page=1`、`size=10`。

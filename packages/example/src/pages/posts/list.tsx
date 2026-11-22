@@ -1,6 +1,10 @@
-import { Button, Input, Select, Space, Tag } from 'antd';
+import { Button, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { SchemaCrudList, useCrudListActions } from '@jswork/antd-form-schema-crud';
+import {
+  SchemaCrudList,
+  queryPlugins,
+  useCrudListActions,
+} from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
 import { PageHeader } from './components/page-header';
 import { postPageConfig } from './config';
@@ -11,10 +15,11 @@ interface PostListQuery {
   status?: PostRecord['status'];
 }
 
-const POST_STATUS_OPTIONS = Object.entries(STATUS_TEXT).map(([value, label]) => ({
-  value,
-  label,
-}));
+type PostStatus = PostRecord['status'];
+
+const POST_STATUS_OPTIONS = (
+  Object.entries(STATUS_TEXT) as [PostStatus, string][]
+).map(([value, label]) => ({ value, label }));
 
 export function PostsListPage() {
   const navigate = useNavigate();
@@ -25,7 +30,7 @@ export function PostsListPage() {
       <div className="mx-auto max-w-5xl">
         <PageHeader
           title="SchemaCrudList × posts"
-          description="列表固定请求 nx.$api.posts_index({ page, size, ...query })，查询区通过 query.slots 接入。"
+          description="列表固定请求 nx.$api.posts_index({ page, size, ...query })，查询区通过 query.slots + queryPlugins 接入。"
         />
 
         <div className="mb-3 flex items-center gap-3">
@@ -47,37 +52,16 @@ export function PostsListPage() {
           onCreate={() => navigate('/posts/new')}
           query={{
             defaultValues: { keywords: undefined, status: undefined },
-            urlKeys: { keywords: 'q' },
+            urlKeys: { keywords: 'q', status: 'status' },
             slots: {
-              headerStart: ({ values, setValues }) => (
-                <Select
-                  allowClear
-                  size="small"
-                  placeholder="全部状态"
-                  style={{ width: 120 }}
-                  value={values.status}
-                  options={POST_STATUS_OPTIONS}
-                  onChange={(status) => setValues({ status })}
-                />
-              ),
-              headerEnd: ({ values, setValues, reset, loading }) => (
-                <Space size="small">
-                  <Input.Search
-                    allowClear
-                    size="small"
-                    loading={loading}
-                    placeholder="搜索标题 / 副标题"
-                    style={{ width: 220 }}
-                    value={values.keywords ?? ''}
-                    onChange={(event) =>
-                      setValues({ keywords: event.target.value.trim() || undefined })
-                    }
-                  />
-                  <Button size="small" onClick={() => reset()}>
-                    重置
-                  </Button>
-                </Space>
-              ),
+              headerStart: queryPlugins.status<PostListQuery, PostStatus>({
+                options: POST_STATUS_OPTIONS,
+              }),
+              headerEnd: queryPlugins.keywords<PostListQuery>({
+                width: 220,
+                placeholder: '搜索标题 / 副标题',
+                autoFocus: true,
+              }),
               body: ({ values, setValues, reset }) => {
                 if (!values.keywords && !values.status) return null;
                 return (
