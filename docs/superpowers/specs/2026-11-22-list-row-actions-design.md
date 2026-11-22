@@ -32,7 +32,7 @@
 - `mode` 三选一：`prepend` / `append` / `replace`，缺省 `prepend`。
 - 只接受对象形态，不提供数组简写，避免同一件事有两种表达。
 - `rowActions={null}` 表示整个操作列不显示。
-- 单个内置按钮的显隐继续由 `actions.edit` / `actions.delete` 控制，不新增开关。
+- 关按钮只认 `rowActions`：`replace` 里不写的内置按钮就没有，整列不要就 `null`；`actions.edit` / `actions.delete` 保留为既有能力，但不再作为推荐入口。
 
 ## 现状
 
@@ -61,20 +61,18 @@
 
 ## 关掉按钮 / 关掉整列
 
-三种诉求都有唯一入口，都不需要改 `columns`，也不需要改组件源码。
+只有两个入口，都不需要改 `columns`，也不需要改组件源码。
 
 | 诉求 | 写法 |
 | --- | --- |
-| 不要编辑 | `actions={{ edit: false }}` |
-| 不要删除 | `actions={{ delete: false }}` |
-| 两个都不要 | `actions={{ edit: false, delete: false }}` |
+| 只要其中一部分动作（不要编辑或不要删除） | `rowActions={{ mode: 'replace', items: [...] }}`，不写对应的 `{ builtin }` |
 | 整列都不要 | `rowActions={null}` |
-| 重排 / 替换 / 按行控制内置按钮 | `rowActions={{ mode: 'replace', items: [...] }}` |
 
-两个容易踩的坑，文档里写明：
+说明：
 
-1. Router 分支会给 `onEdit` 兜一个默认导航，所以“不传 `onEdit`”在路由页面里并不等于“没有编辑”，必须显式 `edit: false`。
-2. 传 `resource` 时删除按钮取决于解析后的 `destroy`，只要 `nx.$api` 里有 `albums_destroy` 就会出现；想让某个列表页不删除，同样要显式 `delete: false`。
+- `replace` 下内置按钮不会自动出现，组成完全由 `items` 决定；`append` / `prepend` 下内置按钮按 `onEdit` / `destroy` 自动出现。
+- `actions.edit` / `actions.delete` 是既有能力，仍生效（旧页面、表单底部继续使用），但本次不作为关按钮的推荐入口，避免同一个结果有两套开关。
+- Router 分支会给 `onEdit` 兜默认导航、`resource` 会自动解析 `destroy`，所以 `append` / `prepend` 模式下内置按钮通常都会出现；要精确控制就用 `replace`。
 
 `rowActions` 的三态：
 
@@ -386,7 +384,7 @@ rowActions={{ mode: 'replace', items: [preview, { builtin: 'edit' }] }}
 1. 只有对象写法 `rowActions={{ mode, items }}`，不提供数组简写。
 2. `mode` 为 `prepend`（缺省）/ `append` / `replace` 三选一。
 3. `rowActions={null}` 表示整列不显示；不传表示保持现状。
-4. 内置按钮显隐继续走 `actions.edit` / `actions.delete`，不新增开关。
+4. 关按钮只走 `rowActions`：不要编辑/删除用 `replace` 组合，整列不要用 `null`；不再把 `actions.edit/delete` 写成推荐用法（既有能力保留，仍生效）。
 5. 内置按钮用 `{ builtin: 'edit' | 'delete' }` 引用，保留原 handler、确认与 loading；只在 `replace` 模式有效。
 6. 不提供每项 `position`，顺序由 `mode` + `items` 数组决定。
 7. 外链用 `href` + `target`，求值为空即隐藏；不提供 `onView`。
