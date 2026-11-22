@@ -171,4 +171,69 @@ describe('query plugins', () => {
       })
     );
   });
+
+  it('status plugin seeds from defaultValues and shares state with keywords', async () => {
+    const api = makeApi();
+    render(
+      <SchemaCrudList<TestRecord, TestQuery>
+        schema={schema}
+        api={api}
+        query={{
+          defaultValues: { status: 'open', keywords: 'abc' },
+          slots: {
+            headerStart: queryPlugins.status<TestQuery>({
+              options: [
+                { value: 'open', label: '进行中' },
+                { value: 'done', label: '已完成' },
+              ],
+            }),
+            headerEnd: queryPlugins.keywords<TestQuery>(),
+          },
+        }}
+      />
+    );
+
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(api.index).toHaveBeenLastCalledWith({
+        page: 1,
+        size: 10,
+        status: 'open',
+        keywords: 'abc',
+      })
+    );
+  });
+
+  it('status plugin commits selected option and clear value', async () => {
+    const setValues = vi.fn();
+    const slot = queryPlugins.status<TestQuery>({
+      options: [
+        { value: 'open', label: '进行中' },
+        { value: 'done', label: '已完成' },
+      ],
+    });
+
+    render(
+      <>
+        {slot({
+          values: { status: 'open' },
+          setValues,
+          reset: vi.fn(),
+          loading: false,
+        })}
+      </>
+    );
+
+    const combobox = screen.getByRole('combobox');
+    fireEvent.mouseDown(combobox);
+    fireEvent.click(await screen.findByTitle('已完成'));
+    expect(setValues).toHaveBeenCalledWith({ status: 'done' });
+
+    const clear = document.querySelector('.ant-select-clear');
+    if (clear) {
+      fireEvent.mouseDown(combobox);
+      fireEvent.click(clear);
+      expect(setValues).toHaveBeenCalledWith({ status: undefined });
+    }
+  });
 });
