@@ -83,6 +83,56 @@ Route-backed pagination: pass controlled `page` and write it back in `onPageChan
 - `reset()` restores defaultValues; `reset({})` clears; `reset(values)` uses a one-time reset value. All reset page 1.
 - Query keys equal to page/size keys are ignored. Fixed `params` win over query values with the same key.
 
+## Query plugins
+
+Built-in plugins still plug into `query.slots`; they do not add another query entry.
+
+```tsx
+import { queryPlugins } from '@jswork/antd-form-schema-crud';
+
+query={{
+  defaultValues: { keywords: undefined, status: undefined },
+  slots: {
+    headerStart: queryPlugins.status<PostQuery>({
+      options: [
+        { value: 'open', label: 'In progress' },
+        { value: 'done', label: 'Done' },
+      ],
+    }),
+    headerEnd: queryPlugins.keywords<PostQuery>({ autoFocus: true }),
+  },
+}}
+```
+
+- `queryPlugins.keywords`: local draft, commits on Enter/search, trims, clears to undefined. It does not request while typing.
+- `queryPlugins.status`: commits on option change, clears to undefined, resets page 1 through `setValues`.
+- Multiple plugins share one query state. Use a different `queryKey` for each; duplicate keys overwrite each other.
+- Defaults still come only from `query.defaultValues` and URL.
+- Same-slot composition uses a Fragment; no compose API.
+
+External plugins use the same slot contract:
+
+```tsx
+import { defineQueryPlugin } from '@jswork/antd-form-schema-crud';
+
+const levelPlugin = defineQueryPlugin<Query, { options: Option[] }>({
+  name: 'level',
+  create: ({ options }) => (context) => (
+    <Select
+      allowClear
+      value={context.values.level}
+      options={options}
+      onChange={(level) => context.setValues({ level })}
+    />
+  ),
+});
+```
+
+- `name` is debug metadata; there is no global registry.
+- `create(config)` returns a `CrudListQuerySlot`.
+- Do not call hooks inside `create`; put hooks in a component rendered by the slot.
+- External plugins only use `values` / `setValues` / `reset` / `loading`; they never write the URL or call APIs directly.
+
 
 ## Minimal form
 

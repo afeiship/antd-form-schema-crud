@@ -115,6 +115,77 @@ posts_index({ page, size, ...params }) // => { rows, total }
 - Router 中默认同步查询值到 URL，`urlKeys` 支持数组或 `{ keywords: 'q' }` 映射；`url: false` 可关闭。
 - 查询值里的分页 key 会被忽略，`page` / `size` 始终优先。
 
+### 查询插件
+
+内置两个常用查询控件，仍然放进 `query.slots`：
+
+```tsx
+import { queryPlugins } from '@jswork/antd-form-schema-crud';
+
+<SchemaCrudList<PostRecord, PostListQuery>
+  resource="posts"
+  schema={postSchema}
+  query={{
+    defaultValues: { keywords: undefined, status: undefined },
+    slots: {
+      headerStart: queryPlugins.status<PostListQuery>({
+        options: [
+          { value: 'open', label: '进行中' },
+          { value: 'done', label: '已完成' },
+        ],
+      }),
+      headerEnd: queryPlugins.keywords<PostListQuery>({
+        placeholder: '搜索标题',
+        autoFocus: true,
+      }),
+    },
+  }}
+/>
+```
+
+- `keywords` 输入时不请求，回车 / 搜索时 trim 后提交；清空立即移除查询值。
+- `status` 选择后立即提交并回第 1 页；清空同样移除查询值。
+- 多个 plugin 可以同时使用，每个使用不同的 `queryKey`。
+- 初始值仍然只来自 `query.defaultValues` 和 URL。
+- plugin 可以和普通 slot 混用。
+
+外部项目可以用 `defineQueryPlugin` 定义自己的 plugin：
+
+```tsx
+import { defineQueryPlugin } from '@jswork/antd-form-schema-crud';
+
+interface LevelQuery {
+  level?: string;
+}
+
+interface LevelOption {
+  value: string;
+  label: string;
+}
+
+const levelPlugin = defineQueryPlugin<LevelQuery, { options: LevelOption[] }>({
+  name: 'level',
+  create: ({ options }) => (context) => (
+    <Select
+      allowClear
+      value={context.values.level}
+      options={options}
+      onChange={(level) => context.setValues({ level })}
+    />
+  ),
+});
+
+query={{
+  slots: {
+    headerEnd: levelPlugin({ options: levelOptions }),
+  },
+}}
+```
+
+- `name` 只是调试名，不做全局注册。
+- `create(config)` 必须返回一个 slot；需要 React hooks 时，在 slot 内返回自定义组件。
+- 外部 plugin 不直接操作 URL 或 API。
+
 ### 业务字段配置
 
 列表字段和详情字段通常不同。每个业务用一个普通配置对象集中声明，不复制 schema：

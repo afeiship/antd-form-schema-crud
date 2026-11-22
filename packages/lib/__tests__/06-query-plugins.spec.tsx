@@ -1,11 +1,11 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { SchemaCrudList } from '../src';
-import type { CrudListParams } from '../src';
 import {
+  SchemaCrudList,
   defineQueryPlugin,
   queryPlugins,
-} from '../src/components/query/plugins';
+} from '../src';
+import type { CrudListParams } from '../src';
 
 const schema = {
   fields: [

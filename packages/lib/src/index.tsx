@@ -4,6 +4,15 @@ export { SchemaCrudList } from './components/schema-crud-list';
 export { resolveApi, checkRequirement, checkListRequirement, errorMessage, getNxApi } from './api';
 export { useCrudListActions } from './hooks/use-crud-list-actions';
 export { useCrudFormActions } from './hooks/use-crud-form-actions';
+export { queryPlugins, defineQueryPlugin } from './components/query/plugins';
+export type {
+  CrudQueryPlugin,
+  CrudQueryPluginDefinition,
+  CrudQueryKeywordsPluginConfig,
+  CrudQueryStatusOption,
+  CrudQueryStatusPluginConfig,
+  CrudQueryPlugins,
+} from './components/query/plugins';
 export {
   configureSchemaCrudForm,
   getSchemaCrudFormDefaults,
