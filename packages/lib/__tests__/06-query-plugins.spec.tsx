@@ -2,7 +2,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { SchemaCrudList } from '../src';
 import type { CrudListParams } from '../src';
-import { defineQueryPlugin } from '../src/components/query/plugins';
+import {
+  defineQueryPlugin,
+  queryPlugins,
+} from '../src/components/query/plugins';
 
 const schema = {
   fields: [
@@ -92,5 +95,80 @@ describe('query plugins', () => {
         create: undefined as never,
       })
     ).toThrow('requires a create function');
+  });
+
+  it('keywords plugin seeds from defaultValues and commits only on search', async () => {
+    const api = makeApi();
+    render(
+      <SchemaCrudList<TestRecord, TestQuery>
+        schema={schema}
+        api={api}
+        query={{
+          defaultValues: { keywords: 'abc' },
+          slots: { headerEnd: queryPlugins.keywords<TestQuery>() },
+        }}
+      />
+    );
+
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(api.index).toHaveBeenLastCalledWith({
+        page: 1,
+        size: 10,
+        keywords: 'abc',
+      })
+    );
+
+    const input = screen.getByPlaceholderText('搜索');
+    expect(input).toHaveValue('abc');
+    const calls = api.index.mock.calls.length;
+
+    fireEvent.change(input, { target: { value: ' Ada ' } });
+    expect(api.index).toHaveBeenCalledTimes(calls);
+
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 });
+    await waitFor(() =>
+      expect(api.index).toHaveBeenLastCalledWith({
+        page: 1,
+        size: 10,
+        keywords: 'Ada',
+      })
+    );
+  });
+
+  it('keywords plugin removes the value when cleared', async () => {
+    const api = makeApi();
+    render(
+      <SchemaCrudList<TestRecord, TestQuery>
+        schema={schema}
+        api={api}
+        query={{
+          defaultValues: { keywords: undefined },
+          slots: { headerEnd: queryPlugins.keywords<TestQuery>() },
+        }}
+      />
+    );
+
+    expect(await screen.findByText('Ada')).toBeInTheDocument();
+    const input = screen.getByPlaceholderText('搜索');
+    expect(input).toHaveValue('');
+
+    fireEvent.change(input, { target: { value: 'Ada' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', charCode: 13 });
+    await waitFor(() =>
+      expect(api.index).toHaveBeenLastCalledWith({
+        page: 1,
+        size: 10,
+        keywords: 'Ada',
+      })
+    );
+
+    fireEvent.change(input, { target: { value: '' } });
+    await waitFor(() =>
+      expect(api.index).toHaveBeenLastCalledWith({
+        page: 1,
+        size: 10,
+      })
+    );
   });
 });
