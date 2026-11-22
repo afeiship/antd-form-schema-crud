@@ -192,12 +192,34 @@ export function useCrudColumns<TRecord extends CrudRecord>({
       };
     };
 
+    if (
+      columns?.some((column) => (column as Record<string, any>)?.key === '__schema_crud_actions')
+    ) {
+      warnOnce(
+        'conflict:actions',
+        '[SchemaCrudList] 显式 columns 已包含 __schema_crud_actions，组件仍会再追加一列操作列。'
+      );
+    }
+
+    const isStaticallyVisible = (item: (typeof items)[number]) => {
+      if (isBuiltinRowAction(item)) {
+        if (mode !== 'replace') return false;
+        return item.builtin === 'edit' ? canEdit : canDelete;
+      }
+      if (item.hidden === true) return false;
+      if (typeof item.href === 'string' && item.href === '') return false;
+      return true;
+    };
+    const customCount = items.filter(isStaticallyVisible).length;
+    const builtinCount = mode === 'replace' ? 0 : (canEdit ? 1 : 0) + (canDelete ? 1 : 0);
+    const width = actionColumn?.width ?? Math.max(76, (customCount + builtinCount) * 48 + 16);
+
     return [
       {
         key: '__schema_crud_actions',
         title: actionColumn?.title ?? '操作',
         className: `${CLASS_NAME}__actions`,
-        width: actionColumn?.width ?? (canEdit && canDelete ? 92 : 76),
+        width,
         render: (_: unknown, record: TRecord, index: number) => {
           const recordKey = getRecordKey(record, rowKey);
           const isDeleting = deletingKey !== null && deletingKey === recordKey;
@@ -290,6 +312,7 @@ export function useCrudColumns<TRecord extends CrudRecord>({
   }, [
     rowActions,
     actionColumn,
+    columns,
     canEdit,
     canDelete,
     confirmDelete,

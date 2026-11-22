@@ -327,3 +327,88 @@ describe('SchemaCrudList rowActions replace mode', () => {
     expect(error).toHaveBeenCalledWith(expect.stringContaining('仅在 replace 模式生效'));
   });
 });
+
+const lastHeader = (container: HTMLElement) =>
+  container.querySelector('thead th:last-child') as HTMLElement | null;
+
+const actionColWidth = (container: HTMLElement) =>
+  (container.querySelectorAll('colgroup col')[1] as HTMLElement | undefined)?.style.width;
+
+describe('SchemaCrudList action column', () => {
+  it('uses the item count for width and lets actionColumn override it', async () => {
+    const api = makeListApi();
+    const { container, unmount } = render(
+      <SchemaCrudList
+        schema={listSchema}
+        api={api}
+        onEdit={vi.fn()}
+        rowActions={{ items: [{ key: 'copy', text: '复制', onClick: vi.fn() }] }}
+      />
+    );
+
+    await screen.findByText('Ada');
+    expect(actionColWidth(container)).toBe('160px');
+    unmount();
+
+    const overridden = render(
+      <SchemaCrudList
+        schema={listSchema}
+        api={api}
+        onEdit={vi.fn()}
+        rowActions={{ items: [{ key: 'copy', text: '复制', onClick: vi.fn() }] }}
+        actionColumn={{ title: '操作区', width: 220 }}
+      />
+    );
+
+    await screen.findByText('操作区');
+    expect(lastHeader(overridden.container)?.textContent).toBe('操作区');
+    expect(actionColWidth(overridden.container)).toBe('220px');
+  });
+
+  it('hides the whole column when rowActions is null', async () => {
+    const api = makeListApi();
+    render(
+      <SchemaCrudList schema={listSchema} api={api} onEdit={vi.fn()} rowActions={null} />
+    );
+
+    await screen.findByText('Ada');
+    expect(screen.queryByText('操作')).not.toBeInTheDocument();
+    expect(screen.queryByText('编辑')).not.toBeInTheDocument();
+  });
+
+  it('falls back to prepend when mode is invalid', async () => {
+    const api = makeListApi();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { container } = render(
+      <SchemaCrudList
+        schema={listSchema}
+        api={api}
+        onEdit={vi.fn()}
+        rowActions={{ mode: 'before' as any, items: [{ key: 'copy', text: '复制', onClick: vi.fn() }] }}
+      />
+    );
+
+    await screen.findByText('Ada');
+    expect(cellTexts(container, 0)).toEqual(['复制', '编辑', '删除']);
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('rowActions.mode 非法'));
+  });
+
+  it('warns when explicit columns already contain the action column key', async () => {
+    const api = makeListApi();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    render(
+      <SchemaCrudList
+        schema={listSchema}
+        api={api}
+        onEdit={vi.fn()}
+        columns={[
+          { key: 'name', dataIndex: 'name', title: '姓名' },
+          { key: '__schema_crud_actions', title: '自定义操作', render: () => null },
+        ]}
+      />
+    );
+
+    await screen.findByText('Ada');
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('已包含 __schema_crud_actions'));
+  });
+});
