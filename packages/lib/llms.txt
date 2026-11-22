@@ -75,6 +75,7 @@ Route-backed pagination: pass controlled `page` and write it back in `onPageChan
 
 - Slots: `before` above the Card, `headerStart` before built-in actions, `headerEnd` after built-in actions, `body` inside the Card body before the table.
 - `defaultValues` is the only initialization baseline for all slots. It can be an object or a lazy function evaluated once with `{ searchParams, location }`.
+- Query values are independent of the row shape. `SchemaCrudList<PostRecord, PostListQuery>` types `values` / `setValues` / `reset` with the second generic; it defaults to a string-keyed record.
 - URL query values override `defaultValues`; `urlKeys` accepts an array or `{ queryKey: urlKey }`; `url: false` disables URL sync.
 - Query changes reset to page 1 by default. `setValues(patch, { resetPage: false })` keeps the current page.
 - `reset()` restores defaultValues; `reset({})` clears; `reset(values)` uses a one-time reset value. All reset page 1.

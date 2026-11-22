@@ -15,8 +15,11 @@ interface SchemaCrudListStateOptions {
 }
 
 /** Request, requirement, column and delete state for the list card. */
-export function useSchemaCrudListState<TRecord extends CrudRecord = CrudRecord>(
-  props: SchemaCrudListProps<TRecord>,
+export function useSchemaCrudListState<
+  TRecord extends CrudRecord = CrudRecord,
+  TQuery extends Record<string, any> = CrudRecord
+>(
+  props: SchemaCrudListProps<TRecord, TQuery>,
   options: SchemaCrudListStateOptions = {}
 ) {
   const { queryValues = {}, paramsResetPageRef } = options;

@@ -26,7 +26,7 @@ VITE_API_TOKEN=your-token
 | `/posts/:id`       | 详情                | `SchemaCrudForm`    |
 | `/posts/:id/edit`  | 编辑                | `SchemaCrudForm`    |
 
-`/` 重定向到 `/posts`。示例用 `react-router-dom` 的 `BrowserRouter + Routes`；`SchemaCrudList` 默认把分页同步到路由查询参数：`/posts?page=2&size=20`。刷新、前进后退都会保留页码；示例传 `keepDefaultParams={false}`，第 1 页和默认 `size=10` 不写进 URL。
+`/` 重定向到 `/posts`。示例用 `react-router-dom` 的 `BrowserRouter + Routes`；`SchemaCrudList` 默认把分页同步到路由查询参数：`/posts?page=2&size=20`。刷新、前进后退都会保留页码；示例传 `keepDefaultParams={false}`，第 1 页和默认 `size=10` 不写进 URL。查询区通过 `query.slots` 接入，关键词映射为 URL 的 `q`，状态保留 `status`，例如 `/posts?q=Rails&status=published&page=1&size=10`。
 
 ## 接口约定
 
@@ -45,17 +45,44 @@ VITE_API_TOKEN=your-token
 ## 列表
 
 ```tsx
-<SchemaCrudList
+<SchemaCrudList<PostRecord, PostListQuery>
   resource={postPageConfig.resource}
   schema={postPageConfig.schema}
   fields={postPageConfig.list.fields}
   presets={postPageConfig.list.presets}
   title={postPageConfig.title}
   onCreate={() => navigate('/posts/new')}
-  onEdit={(record) => navigate(`/posts/${record.id}/edit`)}
+  query={{
+    defaultValues: { keywords: undefined, status: undefined },
+    urlKeys: { keywords: 'q' },
+    slots: {
+      headerStart: ({ values, setValues }) => (
+        <Select value={values.status} onChange={(status) => setValues({ status })} />
+      ),
+      headerEnd: ({ values, setValues, reset }) => (
+        <>
+          <Input.Search
+            value={values.keywords ?? ''}
+            onChange={(event) =>
+              setValues({ keywords: event.target.value.trim() || undefined })
+            }
+          />
+          <Button onClick={() => reset()}>重置</Button>
+        </>
+      ),
+      body: ({ values, reset }) =>
+        values.keywords || values.status ? (
+          <Tag closable onClose={() => reset({})}>当前筛选</Tag>
+        ) : null,
+    },
+  }}
 />
 ```
 
+- `headerStart` 是状态筛选，`headerEnd` 是搜索和重置，`body` 展示当前筛选。
+- 查询值通过 `query.slots` 统一读写；请求固定为 `{ ...query.values, page, size }`。
+- `urlKeys: { keywords: 'q' }` 把关键词写入 `?q=...`；`reset()` 回到 `defaultValues` 并回第 1 页。
+- 示例的 `posts_index` 会把额外查询参数一起带到 `/api/posts`。
 - 服务端分页，默认 `page=1`、`size=10`。
 - `config.ts` 是每个业务自己的字段配置：`list.fields` 只放列表需要的列，`detail.fields` 放详情字段；两者可以不同。
 - `presets` 在 `list-presets.ts` 集中维护列标题、宽度和对齐；`fields` 控制出现哪些列。

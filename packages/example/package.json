@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@jswork/antd-form-schema": "^1.0.2",
-    "@jswork/antd-form-schema-crud": "workspace:^2.0.0",
+    "@jswork/antd-form-schema-crud": "workspace:*",
     "@jswork/next": "^1.2.2",
     "@jswork/presets-tailwind": "^1.1.8",
     "@jswork/simple-date-format": "^1.0.5",

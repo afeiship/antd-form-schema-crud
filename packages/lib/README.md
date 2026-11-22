@@ -107,6 +107,7 @@ posts_index({ page, size, ...params }) // => { rows, total }
 - `headerStart` 在新建之前，`headerEnd` 在刷新 / 返回之后，`before` 在 Card 之前，`body` 在 Card 内容顶部。
 - 所有 slot 都是函数，统一拿到 `values` / `setValues` / `reset` / `loading`。
 - `defaultValues` 是整份查询状态的唯一基线；惰性函数只执行一次，可读 `searchParams` / `location`。
+- 查询值不要求是行记录字段。需要类型提示时用第二个泛型：`SchemaCrudList<PostRecord, PostListQuery>`。
 - 请求合并为 `{ ...query.values, ...params, page, size }`，同名 key 由 `params` 覆盖。
 - 查询值变化默认回第 1 页；`setValues(value, { resetPage: false })` 可保留当前页。
 - Router 中默认同步查询值到 URL，`urlKeys` 支持数组或 `{ keywords: 'q' }` 映射；`url: false` 可关闭。

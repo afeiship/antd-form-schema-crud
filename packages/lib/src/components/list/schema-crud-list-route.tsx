@@ -11,9 +11,10 @@ import {
 import { SchemaCrudListRender } from './schema-crud-list-render';
 
 /** Adds URL pagination, query URL sync and default navigation/toast handlers. */
-function SchemaCrudListRoute<TRecord extends CrudRecord = CrudRecord>(
-  props: SchemaCrudListProps<TRecord>
-) {
+function SchemaCrudListRoute<
+  TRecord extends CrudRecord = CrudRecord,
+  TQuery extends Record<string, any> = CrudRecord
+>(props: SchemaCrudListProps<TRecord, TQuery>) {
   const listKeys = getSchemaCrudListKeys();
   const navigate = useNavigate();
   const location = useLocation();
@@ -74,11 +75,13 @@ function SchemaCrudListRoute<TRecord extends CrudRecord = CrudRecord>(
   };
 
   return (
-    <SchemaCrudListRender<TRecord>
+    <SchemaCrudListRender<TRecord, TQuery>
       {...props}
       page={route.page}
       pageSize={route.pageSize}
-      onPageChange={route.onPageChange as SchemaCrudListProps<TRecord>['onPageChange']}
+      onPageChange={
+        route.onPageChange as SchemaCrudListProps<TRecord, TQuery>['onPageChange']
+      }
       onCreate={props.onCreate ?? (() => navigate(`${basePath}/add${search}`))}
       onEdit={
         props.onEdit ??

@@ -229,7 +229,10 @@ export interface SchemaCrudFormProps<TRecord = CrudRecord> {
   className?: string;
 }
 
-export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
+export interface SchemaCrudListProps<
+  TRecord extends CrudRecord = CrudRecord,
+  TQuery extends Record<string, any> = CrudRecord
+> {
   resource?: string;
   schema: FormSchema;
   api?: CrudApi<TRecord>;
@@ -248,8 +251,8 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
 
   /** Business filters, sent with page / size. */
   params?: Record<string, any>;
-  /** User query values, rendered through query.slots. */
-  query?: CrudListQueryConfig<TRecord>;
+  /** Arbitrary user query values, rendered through query.slots. */
+  query?: CrudListQueryConfig<TQuery>;
   /** Controlled current page. Passing page or pageSize disables URL syncing. */
   page?: number;
   pageSize?: number;

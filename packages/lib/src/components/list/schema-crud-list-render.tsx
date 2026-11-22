@@ -15,15 +15,18 @@ import { SchemaListToolbar } from './list-toolbar';
 import { resolveCrudListQueryNodes } from './schema-crud-list-query';
 import { useSchemaCrudListState } from './use-schema-crud-list-state';
 
-interface SchemaCrudListRenderProps<TRecord extends CrudRecord = CrudRecord>
-  extends SchemaCrudListProps<TRecord> {
+interface SchemaCrudListRenderProps<
+  TRecord extends CrudRecord = CrudRecord,
+  TQuery extends Record<string, any> = CrudRecord
+> extends SchemaCrudListProps<TRecord, TQuery> {
   /** Internal adapter supplied by the router wrapper. */
   queryUrlAdapter?: CrudQueryUrlAdapter;
 }
 
-function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
-  props: SchemaCrudListRenderProps<TRecord>
-) {
+function SchemaCrudListRender<
+  TRecord extends CrudRecord = CrudRecord,
+  TQuery extends Record<string, any> = CrudRecord
+>(props: SchemaCrudListRenderProps<TRecord, TQuery>) {
   const {
     title,
     actions,
@@ -77,8 +80,8 @@ function SchemaCrudListRender<TRecord extends CrudRecord = CrudRecord>(
   const cardSize = getSchemaCrudCardSize();
   const titleNode = title === false ? undefined : <>{title ?? '记录'}列表</>;
   const initialLoading = state.loading && state.rows.length === 0 && !state.loadError;
-  const queryContext: CrudListQueryContext<TRecord> = {
-    values: queryState.values as Partial<TRecord>,
+  const queryContext: CrudListQueryContext<TQuery> = {
+    values: queryState.values,
     setValues: queryState.setValues,
     reset: queryState.reset,
     loading: state.loading,

@@ -1,4 +1,8 @@
-import type { CrudId, CrudValues } from '@jswork/antd-form-schema-crud';
+import type {
+  CrudId,
+  CrudListParams,
+  CrudValues,
+} from '@jswork/antd-form-schema-crud';
 
 export interface PostRecord {
   id: number;
@@ -38,6 +42,15 @@ const RESOURCE = postsSchema.resources[0];
 const TOKEN = import.meta.env.VITE_API_TOKEN ?? '';
 const resourceUrl = (path = '') => `${postsSchema.baseURL}${API_PREFIX}/${RESOURCE}${path}`;
 
+const toSearch = (params: Record<string, any>) => {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    search.set(key, String(value));
+  });
+  return search.toString();
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -70,8 +83,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
  * `${resource}_${action}`，参数与 SchemaCrudForm 的 CrudApi 一致。
  */
 export const postsApi = {
-  posts_index: (params: { page?: number; size?: number } = {}) =>
-    request<PostList>(`${resourceUrl()}?page=${params.page ?? 1}&size=${params.size ?? 20}`),
+  posts_index: (params: CrudListParams = { page: 1, size: 20 }) =>
+    request<PostList>(`${resourceUrl()}?${toSearch(params)}`),
 
   posts_show: ({ id }: { id: CrudId }) => request<PostRecord>(resourceUrl(`/${id}`)),
 
