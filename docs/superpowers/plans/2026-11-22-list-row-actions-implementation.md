@@ -2,7 +2,7 @@
 
 日期：2026-11-22
 
-状态：待确认
+状态：已实施（2026-11-22）
 
 设计文档：`docs/superpowers/specs/2026-11-22-list-row-actions-design.md`
 

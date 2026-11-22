@@ -2,7 +2,7 @@
 
 日期：2026-11-22
 
-状态：设计已确认（2026-11-22），待执行
+状态：已实施（2026-11-22）
 
 关系：在 `2026-11-21-schema-resource-list-design.md`、`2026-11-22-crud-list-query-design.md` 与 `2026-11-22-crud-action-hook-design.md` 之上，只扩展操作列的组成方式。不改变请求流程、分页、路由导航、删除确认、`query.slots` 和 action hook 的语义。
 
@@ -395,3 +395,19 @@ rowActions={{ mode: 'replace', items: [preview, { builtin: 'edit' }] }}
 12. `onClick` 增加第二参 `{ index, reload }`：操作成功后可直接刷新当前页，不必再让业务接 hook。
 13. `disabled` 支持 `tooltip`：置灰的按钮能说明原因，`disabled` 状态用 `span` 包裹保证提示可见。
 14. 操作列本次仍不做 `fixed: 'right'`：宽度随动作数变化，`fixed` 要与 `tableProps.scroll.x` 联动，先用 `actionColumn.width` + `scroll` 兜底，需要时单独开节点。
+
+
+## 实施记录（2026-11-22）
+
+| 节点 | commit | 内容 |
+| --- | --- | --- |
+| 0 | `fec586b` | 设计文档与实施计划 |
+| 1 | `056cd5f` | 类型 + `resolveRowAction` + resolver 测试 |
+| 2 | `0984e9e` | `SchemaRowActionItem` 渲染 + 接入 `useCrudColumns` |
+| 3 | `53f5f2f` | `replace` 模式与 `{ builtin }` 引用测试 |
+| 4 | `88308c2` | 列标题/宽度覆盖、`rowActions={null}`、冲突告警 |
+| 5 | `f2f87cf` | 导出类型 + README / llms + 1.1.0 + tsup |
+| 6 | `2b14b91` | example 演示 |
+| 7 | `699cf7e`（jsw-admin） | 相册页预览迁入操作列 |
+
+验证：lib 125 项测试通过、`tsc --noEmit` 通过、example `vite build` 通过、jsw-admin `pnpm ts-check` 仅剩既有 PWA 类型错误；5076 页面实测操作列为「预览 / 编辑 / 删除」。
