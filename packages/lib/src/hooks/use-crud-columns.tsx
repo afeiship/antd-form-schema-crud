@@ -1,11 +1,22 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { Key, ReactNode } from 'react';
-import { Button, Popconfirm, Space } from 'antd';
+import { Space } from 'antd';
 import type { TableProps } from 'antd';
 import type { FormSchema } from '@jswork/antd-form-schema';
 import { CLASS_NAME } from '../constants';
-import type { CrudRecord, ListPresetField, ListPresets } from '../types';
+import type {
+  CrudBuiltinRowAction,
+  CrudListActionColumn,
+  CrudRecord,
+  CrudRowAction,
+  CrudRowActionsConfig,
+  CrudRowActionsMode,
+  ListPresetField,
+  ListPresets,
+} from '../types';
 import { getOptionLabel, getRecordKey, resolveListPresets } from '../utils/list';
+import { SchemaRowActionItem } from '../components/list/row-action-item';
+import { isBuiltinRowAction, resolveRowAction } from '../components/list/row-action';
 
 interface UseCrudColumnsOptions<TRecord extends CrudRecord> {
   schema: FormSchema;
@@ -16,8 +27,17 @@ interface UseCrudColumnsOptions<TRecord extends CrudRecord> {
   canDelete: boolean;
   deletingKey: Key | null;
   rowKey: keyof TRecord | ((record: TRecord) => Key);
+  rowActions?: CrudRowActionsConfig<TRecord> | null;
+  actionColumn?: CrudListActionColumn;
+  reload: () => void;
   onEdit?: (record: TRecord) => void;
   onDelete: (record: TRecord) => Promise<void>;
+}
+
+interface ActionEntry<TRecord extends CrudRecord> {
+  action: CrudRowAction<TRecord>;
+  href?: string;
+  loading?: boolean;
 }
 
 function mergePreset<TRecord>(
@@ -53,10 +73,19 @@ export function useCrudColumns<TRecord extends CrudRecord>({
   canDelete,
   deletingKey,
   rowKey,
+  rowActions,
+  actionColumn,
+  reload,
   onEdit,
   onDelete,
 }: UseCrudColumnsOptions<TRecord>) {
   const presetMap = useMemo(() => resolveListPresets(presets), [presets]);
+  const warnedRef = useRef<Set<string>>(new Set());
+  const warnOnce = (key: string, message: string) => {
+    if (warnedRef.current.has(key)) return;
+    warnedRef.current.add(key);
+    console.error(message);
+  };
 
   const dataColumns = useMemo<TableProps<TRecord>['columns']>(() => {
     if (columns) {
@@ -95,60 +124,185 @@ export function useCrudColumns<TRecord extends CrudRecord>({
       });
   }, [columns, presetMap, schema.fields]);
 
-  const actionColumn = useMemo<TableProps<TRecord>['columns'] | null>(() => {
-    if (!canEdit && !canDelete) return null;
+  const actionColumnDef = useMemo<TableProps<TRecord>['columns'] | null>(() => {
+    if (rowActions === null) return null;
+
+    const items = rowActions?.items ?? [];
+    const rawMode = rowActions?.mode;
+    let mode: CrudRowActionsMode = 'prepend';
+    if (rawMode === 'append' || rawMode === 'prepend' || rawMode === 'replace') {
+      mode = rawMode;
+    } else if (rawMode !== undefined) {
+      warnOnce(`mode:${String(rawMode)}`, `[SchemaCrudList] rowActions.mode 非法：${String(rawMode)}，已回退 prepend。`);
+    }
+
+    const seen = new Set<string>();
+    items.forEach((item) => {
+      const key = isBuiltinRowAction(item) ? `builtin:${item.builtin}` : item.key;
+      if (seen.has(key)) {
+        warnOnce(
+          `dup:${key}`,
+          `[SchemaCrudList] rowActions 存在重复 key：${key}，只保留第一个。`
+        );
+      }
+      seen.add(key);
+    });
+
+    const buildBuiltin = (
+      builtin: 'edit' | 'delete',
+      ref: CrudBuiltinRowAction<TRecord> | undefined,
+      record: TRecord
+    ): CrudRowAction<TRecord> | null => {
+      if (builtin === 'edit') {
+        if (!canEdit || !onEdit) {
+          warnOnce(
+            'builtin:edit:missing',
+            '[SchemaCrudList] builtin edit 不可用（需要 onEdit，且未被 actions.edit 关闭），已跳过。'
+          );
+          return null;
+        }
+        return {
+          key: '__builtin_edit',
+          text: ref?.text ?? '编辑',
+          tooltip: ref?.tooltip,
+          props: ref?.props,
+          hidden: ref?.hidden,
+          disabled: ref?.disabled,
+          onClick: () => {
+            onEdit(record);
+          },
+        };
+      }
+      if (!canDelete) {
+        warnOnce('builtin:delete:missing', '[SchemaCrudList] builtin delete 需要 destroy，已跳过。');
+        return null;
+      }
+      return {
+        key: '__builtin_delete',
+        text: ref?.text ?? '删除',
+        tooltip: ref?.tooltip,
+        props: ref?.props,
+        hidden: ref?.hidden,
+        disabled: ref?.disabled,
+        danger: true,
+        confirm: confirmDelete
+          ? { title: '确定删除这条记录吗？', okText: '确定', cancelText: '取消' }
+          : undefined,
+        onClick: () => onDelete(record),
+      };
+    };
 
     return [
       {
         key: '__schema_crud_actions',
-        title: '操作',
+        title: actionColumn?.title ?? '操作',
         className: `${CLASS_NAME}__actions`,
-        width: canEdit && canDelete ? 92 : 76,
-        render: (_: unknown, record: TRecord) => {
+        width: actionColumn?.width ?? (canEdit && canDelete ? 92 : 76),
+        render: (_: unknown, record: TRecord, index: number) => {
           const recordKey = getRecordKey(record, rowKey);
           const isDeleting = deletingKey !== null && deletingKey === recordKey;
+          const custom: ActionEntry<TRecord>[] = [];
+          const seenRowKeys = new Set<string>();
+
+          items.forEach((item) => {
+            if (isBuiltinRowAction(item)) {
+              if (mode !== 'replace') {
+                warnOnce(
+                  `builtin:${item.builtin}:mode`,
+                  `[SchemaCrudList] builtin ${item.builtin} 仅在 replace 模式生效，已忽略。`
+                );
+                return;
+              }
+              const builtin = buildBuiltin(item.builtin, item, record);
+              if (!builtin) return;
+              if (seenRowKeys.has(builtin.key)) {
+                warnOnce(`dup:${builtin.key}`, `[SchemaCrudList] rowActions 存在重复 key：${builtin.key}，只保留第一个。`);
+                return;
+              }
+              seenRowKeys.add(builtin.key);
+              const resolved = resolveRowAction(builtin, record, index);
+              if (!resolved) return;
+              custom.push({
+                action: resolved.action,
+                loading: builtin.key === '__builtin_delete' ? isDeleting : undefined,
+              });
+              return;
+            }
+
+            if (seenRowKeys.has(item.key)) {
+              warnOnce(`dup:${item.key}`, `[SchemaCrudList] rowActions 存在重复 key：${item.key}，只保留第一个。`);
+              return;
+            }
+            seenRowKeys.add(item.key);
+            const resolved = resolveRowAction(item, record, index);
+            if (!resolved) return;
+            custom.push({ action: resolved.action, href: resolved.href });
+          });
+
+          const builtin: ActionEntry<TRecord>[] = [];
+          if (mode !== 'replace') {
+            const pushBuiltin = (key: 'edit' | 'delete') => {
+              const ref = buildBuiltin(key, undefined, record);
+              if (!ref) return;
+              if (seenRowKeys.has(ref.key)) {
+                warnOnce(`dup:${ref.key}`, `[SchemaCrudList] rowActions 存在重复 key：${ref.key}，只保留第一个。`);
+                return;
+              }
+              seenRowKeys.add(ref.key);
+              const resolved = resolveRowAction(ref, record, index);
+              if (!resolved) return;
+              builtin.push({
+                action: resolved.action,
+                loading: key === 'delete' ? isDeleting : undefined,
+              });
+            };
+            if (canEdit) pushBuiltin('edit');
+            if (canDelete) pushBuiltin('delete');
+          }
+
+          const ordered =
+            mode === 'replace'
+              ? custom
+              : mode === 'prepend'
+                ? [...custom, ...builtin]
+                : [...builtin, ...custom];
+
+          if (ordered.length === 0) return null;
 
           return (
             <Space size={0}>
-              {canEdit ? (
-                <Button type="link" size="small" onClick={() => onEdit?.(record)}>
-                  编辑
-                </Button>
-              ) : null}
-              {canDelete ? (
-                confirmDelete ? (
-                  <Popconfirm
-                    title="确定删除这条记录吗？"
-                    okText="确定"
-                    cancelText="取消"
-                    onConfirm={() => onDelete(record)}
-                  >
-                    <Button type="link" size="small" danger loading={isDeleting}>
-                      删除
-                    </Button>
-                  </Popconfirm>
-                ) : (
-                  <Button
-                    type="link"
-                    size="small"
-                    danger
-                    loading={isDeleting}
-                    onClick={() => onDelete(record)}
-                  >
-                    删除
-                  </Button>
-                )
-              ) : null}
+              {ordered.map((entry) => (
+                <SchemaRowActionItem<TRecord>
+                  key={entry.action.key}
+                  action={entry.action}
+                  record={record}
+                  index={index}
+                  href={entry.href}
+                  loading={entry.loading}
+                  reload={reload}
+                />
+              ))}
             </Space>
           );
         },
       },
     ];
-  }, [canEdit, canDelete, confirmDelete, deletingKey, rowKey, onEdit, onDelete]);
+  }, [
+    rowActions,
+    actionColumn,
+    canEdit,
+    canDelete,
+    confirmDelete,
+    deletingKey,
+    rowKey,
+    reload,
+    onEdit,
+    onDelete,
+  ]);
 
   return useMemo<TableProps<TRecord>['columns']>(() => {
     const list = [...(dataColumns ?? [])];
-    if (actionColumn) list.push(...actionColumn);
+    if (actionColumnDef) list.push(...actionColumnDef);
     return list;
-  }, [dataColumns, actionColumn]);
+  }, [dataColumns, actionColumnDef]);
 }

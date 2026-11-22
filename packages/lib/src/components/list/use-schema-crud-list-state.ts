@@ -35,6 +35,8 @@ export function useSchemaCrudListState<
     page: controlledPage,
     pageSize = 10,
     actions,
+    rowActions,
+    actionColumn,
     confirmDelete = true,
     onEdit,
     onPageChange,
@@ -94,6 +96,9 @@ export function useSchemaCrudListState<
     canDelete,
     deletingKey: list.deletingKey,
     rowKey,
+    rowActions,
+    actionColumn,
+    reload: list.reload,
     onEdit,
     onDelete: list.handleDelete,
   });
