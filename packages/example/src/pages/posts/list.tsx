@@ -6,6 +6,7 @@ import {
   useCrudListActions,
 } from '@jswork/antd-form-schema-crud';
 import type { PostRecord } from '../../api/posts';
+import { postsApi } from '../../api/posts';
 import { PageHeader } from './components/page-header';
 import { postPageConfig } from './config';
 import { STATUS_TEXT } from './schema';
@@ -50,6 +51,29 @@ export function PostsListPage() {
           title={postPageConfig.title}
           keepDefaultParams={false}
           onCreate={() => navigate('/posts/new')}
+          rowActions={{
+            items: [
+              {
+                key: 'detail',
+                text: '详情',
+                target: '_blank',
+                href: (record) => `/posts/${record.id}`,
+              },
+              {
+                key: 'pin',
+                text: '切换置顶',
+                hidden: (record) => record.status === 'draft',
+                confirm: { title: '切换这条文章的置顶状态？' },
+                onClick: async (record, { reload }) => {
+                  await postsApi.posts_update({
+                    id: record.id,
+                    is_sticky: !record.is_sticky,
+                  });
+                  reload();
+                },
+              },
+            ],
+          }}
           query={{
             defaultValues: { keywords: undefined, status: undefined },
             urlKeys: { keywords: 'q', status: 'status' },
