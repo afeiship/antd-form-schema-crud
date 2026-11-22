@@ -241,3 +241,89 @@ describe('SchemaCrudList rowActions', () => {
     expect(cellTexts(container, 0)).toEqual(['编辑', '删除']);
   });
 });
+
+describe('SchemaCrudList rowActions replace mode', () => {
+  it('renders only the items and keeps the requested order', async () => {
+    const api = makeListApi();
+    const { container } = render(
+      <SchemaCrudList
+        schema={listSchema}
+        api={api}
+        onEdit={vi.fn()}
+        rowActions={{
+          mode: 'replace',
+          items: [
+            { key: 'copy', text: '复制', onClick: vi.fn() },
+            { builtin: 'edit' },
+            { builtin: 'delete' },
+          ],
+        }}
+      />
+    );
+
+    await screen.findByText('Ada');
+    expect(cellTexts(container, 0)).toEqual(['复制', '编辑', '删除']);
+  });
+
+  it('drops the built-in buttons that are not referenced', async () => {
+    const api = makeListApi();
+    const { container } = render(
+      <SchemaCrudList
+        schema={listSchema}
+        api={api}
+        onEdit={vi.fn()}
+        rowActions={{
+          mode: 'replace',
+          items: [{ key: 'preview', text: '预览', href: '/albums/ada' }],
+        }}
+      />
+    );
+
+    await screen.findByText('Ada');
+    expect(cellTexts(container, 0)).toEqual(['预览']);
+  });
+
+  it('lets a builtin reference override text and hide per record', async () => {
+    const api = makeListApi();
+    const { container } = render(
+      <SchemaCrudList
+        schema={listSchema}
+        api={api}
+        onEdit={vi.fn()}
+        rowActions={{
+          mode: 'replace',
+          items: [
+            {
+              builtin: 'edit',
+              text: '修改',
+              hidden: (record) => record.slug === 'ada',
+            },
+          ],
+        }}
+      />
+    );
+
+    await screen.findByText('Ada');
+    expect(cellTexts(container, 0)).toEqual([]);
+    expect(cellTexts(container, 1)).toEqual(['修改']);
+  });
+
+  it('ignores builtin references outside replace mode', async () => {
+    const api = makeListApi();
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { container } = render(
+      <SchemaCrudList
+        schema={listSchema}
+        api={api}
+        onEdit={vi.fn()}
+        rowActions={{
+          items: [{ key: 'copy', text: '复制', onClick: vi.fn() }, { builtin: 'delete' }],
+        }}
+      />
+    );
+
+    await screen.findByText('Ada');
+    expect(cellTexts(container, 0)).toEqual(['复制', '编辑', '删除']);
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('仅在 replace 模式生效'));
+  });
+});
