@@ -345,6 +345,38 @@ export const postListPresets: ListPresets = {
 - `hidden: true` 只隐藏列表里的推导列，表单字段不受影响。
 - 操作列不受 `presets` 影响；复杂单元格继续用显式 `columns`。
 
+## 行内动作（rowActions）
+
+操作列默认只有「编辑 / 删除」。需要预览、复制、上下架这类动作时，用 `rowActions` 声明，不要另拼一列：
+
+```tsx
+<SchemaCrudList
+  resource="albums"
+  schema={albumSchema}
+  rowActions={{
+    items: [
+      {
+        key: 'preview',
+        text: '预览',
+        target: '_blank',
+        href: (record) => (record.slug ? `${FRONTEND_URL}/albums/${record.slug}` : null),
+      },
+    ],
+  }}
+/>
+```
+
+- 只接受对象写法 `{ mode, items }`；`rowActions={null}` 表示整列不显示。
+- `mode`：`prepend`（缺省，业务动作在编辑之前）/ `append` / `replace`（只渲染 `items`）。
+- 单项字段：`key`、`text`、`href`、`target`、`render`、`onClick(record, { index, reload })`、`tooltip`、`danger`、`disabled`、`hidden`、`confirm`、`props`。
+- `href` 求值为 `null` / `''` 时该项不显示；`target: '_blank'` 自动加 `rel="noreferrer"`。
+- `hidden` 优先于 `disabled`；置灰的按钮仍显示并保留 `tooltip`。
+- `onClick` / `render` 共用 loading；同步抛错或 Promise reject 只在控制台报错，不会卡住 loading。
+- `confirm: true` 用默认文案，也可传 `{ title, okText, cancelText }`。
+- `replace` 里的 `{ builtin: 'edit' | 'delete' }` 复用原有 handler、删除确认与 loading；写在 `append` / `prepend` 里会被忽略并在开发环境告警。
+- `actionColumn` 可覆盖标题与宽度：`actionColumn={{ title: '操作', width: 160 }}`；缺省宽度为 `max(76, 可渲染项数 * 48 + 16)`。
+- 不要编辑或不要删除：用 `replace` 且不写对应 `builtin`；整列不要：`rowActions={null}`。
+
 ## Shared UI defaults
 
 表单卡片和列表卡片共用同一个 `cardSize`，默认 `middle`。需要调整时只配置一次：

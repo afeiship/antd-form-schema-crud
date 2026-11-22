@@ -204,6 +204,37 @@ Presets only decorate existing schema fields; they never add columns. `hidden: t
 - refresh: `actions.refresh !== false`, shown by default
 - back: `onBack` present
 
+## Row actions
+
+`rowActions` composes the action column. Only the object form is accepted; `rowActions={null}` hides the whole column.
+
+```tsx
+<SchemaCrudList
+  resource="albums"
+  schema={albumSchema}
+  rowActions={{
+    items: [
+      {
+        key: 'preview',
+        text: '预览',
+        target: '_blank',
+        href: (record) => (record.slug ? `${FRONTEND_URL}/albums/${record.slug}` : null),
+      },
+    ],
+  }}
+/>
+```
+
+- `mode`: `prepend` (default) / `append` / `replace`. prepend = items then edit / delete; append = edit / delete then items; replace = items only.
+- Item fields: `key, text, href, target, render, onClick(record, { index, reload }), tooltip, danger, disabled, hidden, confirm, props`.
+- `href` resolving to `null` or `''` hides the item. `target="_blank"` adds `rel="noreferrer"`.
+- `hidden` wins over `disabled`; a disabled item still renders with its tooltip.
+- `onClick` / `render` share one loading state; sync throw or Promise rejection is logged and loading is released.
+- `confirm: true` uses the default title, or pass `{ title, okText, cancelText }`.
+- In `replace` mode `{ builtin: 'edit' | 'delete' }` reuses the original handler, delete confirm and loading; outside replace it is ignored with a dev warning.
+- `actionColumn?: { title, width }`; default width `max(76, renderable items * 48 + 16)`.
+- To drop edit or delete, use `replace` and omit the builtin; `rowActions={null}` removes the column.
+
 ## Defaults
 
 - Shared: both form and list Cards use `size='middle'`; change once with `configureSchemaCrud({ cardSize })`, read with `getSchemaCrudDefaults()`, reset with `resetSchemaCrudDefaults()`.

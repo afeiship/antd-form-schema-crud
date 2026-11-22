@@ -62,4 +62,13 @@ export type {
   CrudListQueryConfig,
   SchemaCrudFormProps,
   SchemaCrudListProps,
+  CrudRowAction,
+  CrudBuiltinRowAction,
+  CrudRowActionItem,
+  CrudRowActionsConfig,
+  CrudRowActionsMode,
+  CrudRowActionConfirm,
+  CrudRowActionHandlerContext,
+  CrudRowActionContext,
+  CrudListActionColumn,
 } from './types';
