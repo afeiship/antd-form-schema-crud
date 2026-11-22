@@ -38,6 +38,49 @@ List does not import react-router. Navigation is entirely callback-driven.
 
 Route-backed pagination: pass controlled `page` and write it back in `onPageChange(page, pageSize)`. The list initializes from `page`, so a refresh keeps the current page. The callback also fires on params reset and delete page rollback.
 
+## Query slots
+
+`SchemaCrudList` owns user query state. `params` stays fixed; `query.values` is the user-filter layer merged as:
+
+  { ...query.values, ...params, page, size }
+
+`query` only supports named slots. Do not use query.render, query.position, query.controls or query.controlsSlot. Every slot is a function receiving the same `values`, `setValues`, `reset` and `loading`:
+
+```tsx
+<SchemaCrudList
+  resource="posts"
+  schema={postSchema}
+  params={{ tenant_id: 1 }}
+  query={{
+    defaultValues: { keywords: undefined, status: 'open' },
+    urlKeys: { keywords: 'q' },
+    slots: {
+      headerStart: ({ values }) => <Tag>{values.status}</Tag>,
+      headerEnd: ({ values, setValues, reset }) => (
+        <>
+          <Input.Search
+            value={values.keywords ?? ''}
+            onChange={(event) => setValues({ keywords: event.target.value || undefined })}
+          />
+          <Button onClick={() => reset()}>Reset</Button>
+        </>
+      ),
+      body: ({ values, setValues }) => (
+        <DateRangePicker value={values.range} onChange={(range) => setValues({ range })} />
+      ),
+    },
+  }}
+/>
+```
+
+- Slots: `before` above the Card, `headerStart` before built-in actions, `headerEnd` after built-in actions, `body` inside the Card body before the table.
+- `defaultValues` is the only initialization baseline for all slots. It can be an object or a lazy function evaluated once with `{ searchParams, location }`.
+- URL query values override `defaultValues`; `urlKeys` accepts an array or `{ queryKey: urlKey }`; `url: false` disables URL sync.
+- Query changes reset to page 1 by default. `setValues(patch, { resetPage: false })` keeps the current page.
+- `reset()` restores defaultValues; `reset({})` clears; `reset(values)` uses a one-time reset value. All reset page 1.
+- Query keys equal to page/size keys are ignored. Fixed `params` win over query values with the same key.
+
+
 ## Minimal form
 
 ```tsx

@@ -1,16 +1,25 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+import type { MutableRefObject } from 'react';
 import { checkListRequirement, resolveApi } from '../../api';
 import { getSchemaCrudListKeys } from '../../defaults';
 import { useCrudColumns } from '../../hooks/use-crud-columns';
 import { useCrudList } from '../../hooks/use-crud-list';
 import { useLatest } from '../../hooks/use-latest';
 import type { CrudRecord, SchemaCrudListProps } from '../../types';
+import { mergeCrudQueryParams } from '../../utils/query';
 import { selectSchemaFields } from '../../utils/schema';
+
+interface SchemaCrudListStateOptions {
+  queryValues?: Record<string, any>;
+  paramsResetPageRef?: MutableRefObject<boolean>;
+}
 
 /** Request, requirement, column and delete state for the list card. */
 export function useSchemaCrudListState<TRecord extends CrudRecord = CrudRecord>(
-  props: SchemaCrudListProps<TRecord>
+  props: SchemaCrudListProps<TRecord>,
+  options: SchemaCrudListStateOptions = {}
 ) {
+  const { queryValues = {}, paramsResetPageRef } = options;
   const {
     resource,
     schema,
@@ -30,6 +39,25 @@ export function useSchemaCrudListState<TRecord extends CrudRecord = CrudRecord>(
     onError,
   } = props;
 
+  const warnedDuplicateRef = useRef(false);
+  const mergedParams = useMemo(() => {
+    const next = mergeCrudQueryParams(queryValues, params);
+    if (!warnedDuplicateRef.current) {
+      const duplicates = Object.keys(queryValues).filter((key) =>
+        params && Object.prototype.hasOwnProperty.call(params, key)
+      );
+      if (duplicates.length > 0) {
+        warnedDuplicateRef.current = true;
+        console.warn(
+          `[SchemaCrudList] params 与 query 使用了同名 key：${duplicates.join(
+            ', '
+          )}。请求中 params 会覆盖 query。`
+        );
+      }
+    }
+    return next;
+  }, [queryValues, params]);
+
   const listKeys = getSchemaCrudListKeys();
   const resolvedApi = useMemo(() => resolveApi<TRecord>(api, resource), [api, resource]);
   const effectiveSchema = useMemo(() => selectSchemaFields(schema, fields), [schema, fields]);
@@ -40,7 +68,8 @@ export function useSchemaCrudListState<TRecord extends CrudRecord = CrudRecord>(
     enabled: !blocked,
     resource,
     apiRef: useLatest(resolvedApi),
-    params,
+    params: mergedParams,
+    paramsResetPageRef,
     controlledPage,
     pageSize,
     keys: listKeys,

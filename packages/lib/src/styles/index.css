@@ -5,6 +5,14 @@
   min-height: 120px;
 }
 
+.antd-form-schema-crud__query-before {
+  margin-bottom: 12px;
+}
+
+.antd-form-schema-crud__query-body {
+  margin-bottom: 12px;
+}
+
 .antd-form-schema-crud__alert {
   margin-bottom: 8px;
 }

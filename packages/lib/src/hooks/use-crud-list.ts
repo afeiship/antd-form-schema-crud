@@ -23,6 +23,8 @@ interface UseCrudListOptions<TRecord extends CrudRecord> {
   /** Always points at the latest merged API. */
   apiRef: MutableRefObject<CrudApi<TRecord>>;
   params?: Record<string, any>;
+  /** Set to false before a params change that must keep the current page. */
+  paramsResetPageRef?: MutableRefObject<boolean>;
   controlledPage?: number;
   pageSize: number;
   keys: CrudListKeys;
@@ -56,6 +58,7 @@ export function useCrudList<TRecord extends CrudRecord>({
   resource,
   apiRef,
   params,
+  paramsResetPageRef,
   controlledPage,
   pageSize,
   keys,
@@ -122,7 +125,9 @@ export function useCrudList<TRecord extends CrudRecord>({
 
     if (previousParamsKeyRef.current !== paramsKey) {
       previousParamsKeyRef.current = paramsKey;
-      if (page !== 1) {
+      const resetPage = paramsResetPageRef?.current ?? true;
+      if (paramsResetPageRef) paramsResetPageRef.current = true;
+      if (resetPage && page !== 1) {
         commitPage(1);
         return;
       }
@@ -134,11 +139,13 @@ export function useCrudList<TRecord extends CrudRecord>({
     setLoadError(null);
     setActionError(null);
 
-    const payload = {
-      ...(paramsRef.current ?? {}),
-      [keys.page]: page,
-      [keys.size]: size,
-    } as CrudListParams;
+    const payload = Object.fromEntries(
+      Object.entries({
+        ...(paramsRef.current ?? {}),
+        [keys.page]: page,
+        [keys.size]: size,
+      }).filter(([, value]) => value !== undefined && value !== null)
+    ) as CrudListParams;
 
     Promise.resolve()
       .then(() => index(payload))
@@ -172,6 +179,7 @@ export function useCrudList<TRecord extends CrudRecord>({
     keys.rows,
     keys.total,
     paramsRef,
+    paramsResetPageRef,
     onErrorRef,
     commitPage,
   ]);

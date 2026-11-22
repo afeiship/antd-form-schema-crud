@@ -64,6 +64,54 @@ posts_index({ page, size, ...params }) // => { rows, total }
 - 行内删除默认开启，带 `Popconfirm`；删除当前页最后一条会自动回退一页。
 - 需要刷新后保留页码时，把 `page` 受控传入，并用 `onPageChange` 写回路由；`onPageChange` 也会覆盖筛选重置和删除回退。
 
+### 查询区
+
+查询区只有 `query.slots` 一种接入方式。查询值、页码回退和 URL 同步由列表处理：
+
+```tsx
+<SchemaCrudList
+  resource="posts"
+  schema={postSchema}
+  params={{ tenant_id: 1 }}
+  query={{
+    defaultValues: { keywords: undefined, status: 'open' },
+    slots: {
+      headerStart: ({ values }) => (
+        <Tag>{values.status === 'open' ? '进行中' : '全部状态'}</Tag>
+      ),
+      headerEnd: ({ values, setValues, reset }) => (
+        <Space wrap>
+          <Input.Search
+            allowClear
+            placeholder="搜索"
+            value={(values.keywords as string) ?? ''}
+            onChange={(event) =>
+              setValues({ keywords: event.target.value.trim() || undefined })
+            }
+          />
+          <Button onClick={() => reset()}>重置</Button>
+        </Space>
+      ),
+      body: ({ values, setValues }) => (
+        <DateRangePicker
+          value={values.range}
+          onChange={(range) => setValues({ range })}
+        />
+      ),
+    },
+  }}
+/>
+```
+
+- `before` / `headerStart` / `headerEnd` / `body` 四个 slot 可同时使用。
+- `headerStart` 在新建之前，`headerEnd` 在刷新 / 返回之后，`before` 在 Card 之前，`body` 在 Card 内容顶部。
+- 所有 slot 都是函数，统一拿到 `values` / `setValues` / `reset` / `loading`。
+- `defaultValues` 是整份查询状态的唯一基线；惰性函数只执行一次，可读 `searchParams` / `location`。
+- 请求合并为 `{ ...query.values, ...params, page, size }`，同名 key 由 `params` 覆盖。
+- 查询值变化默认回第 1 页；`setValues(value, { resetPage: false })` 可保留当前页。
+- Router 中默认同步查询值到 URL，`urlKeys` 支持数组或 `{ keywords: 'q' }` 映射；`url: false` 可关闭。
+- 查询值里的分页 key 会被忽略，`page` / `size` 始终优先。
+
 ### 业务字段配置
 
 列表字段和详情字段通常不同。每个业务用一个普通配置对象集中声明，不复制 schema：

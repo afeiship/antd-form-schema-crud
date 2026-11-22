@@ -44,6 +44,13 @@ export type {
   ListPresets,
   CrudFormProps,
   CrudSuccessEvent,
+  CrudListQueryContext,
+  CrudListQuerySlot,
+  CrudListQuerySlots,
+  CrudListQuerySourceContext,
+  CrudListQueryDefaults,
+  CrudListQueryUrlKeys,
+  CrudListQueryConfig,
   SchemaCrudFormProps,
   SchemaCrudListProps,
 } from './types';

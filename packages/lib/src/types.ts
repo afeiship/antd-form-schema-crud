@@ -117,6 +117,73 @@ export type CrudFormProps = Omit<
   'meta' | 'initialValues' | 'onFinish' | 'children' | 'onFormReady'
 >;
 
+export interface CrudListQueryContext<
+  TValues extends Record<string, any> = Record<string, any>
+> {
+  /** Current query values. `undefined` / `null` entries are already removed. */
+  values: Partial<TValues>;
+  /** Merge or replace query values; resets to page 1 by default. */
+  setValues: (
+    patch:
+      | Partial<TValues>
+      | ((current: Partial<TValues>) => Partial<TValues>),
+    options?: { resetPage?: boolean }
+  ) => void;
+  /** `reset()` restores defaultValues, `reset({})` clears; both reset page 1. */
+  reset: (values?: Partial<TValues>) => void;
+  /** Current list request state. */
+  loading: boolean;
+}
+
+/** Every slot uses one shape and receives the same query context. */
+export type CrudListQuerySlot<
+  TValues extends Record<string, any> = Record<string, any>
+> = (context: CrudListQueryContext<TValues>) => ReactNode;
+
+export interface CrudListQuerySlots<
+  TValues extends Record<string, any> = Record<string, any>
+> {
+  /** Above the Card, full width. */
+  before?: CrudListQuerySlot<TValues>;
+  /** Card extra, before the built-in actions. */
+  headerStart?: CrudListQuerySlot<TValues>;
+  /** Card extra, after the built-in actions. */
+  headerEnd?: CrudListQuerySlot<TValues>;
+  /** Card body, before the table. */
+  body?: CrudListQuerySlot<TValues>;
+}
+
+/** Router context passed to lazy defaultValues. Both fields are null without a Router. */
+export interface CrudListQuerySourceContext {
+  searchParams: URLSearchParams | null;
+  location: { pathname: string; search: string } | null;
+}
+
+export type CrudListQueryDefaults<
+  TValues extends Record<string, any> = Record<string, any>
+> =
+  | Partial<TValues>
+  | ((context: CrudListQuerySourceContext) => Partial<TValues>);
+
+export type CrudListQueryUrlKeys =
+  /** Sync only these keys; URL key equals query key. */
+  | readonly string[]
+  /** Query key -> URL key, for example { keywords: 'q' }. */
+  | Record<string, string>;
+
+export interface CrudListQueryConfig<
+  TValues extends Record<string, any> = Record<string, any>
+> {
+  /** The only query UI entry; configure at least one slot. */
+  slots: CrudListQuerySlots<TValues>;
+  /** Initial values and the baseline used by `reset()`. */
+  defaultValues?: CrudListQueryDefaults<TValues>;
+  /** Sync query values to the URL. Defaults to true; ignored without a Router. */
+  url?: boolean;
+  /** Sync scope or key mapping. Omitted means all scalar values / scalar arrays. */
+  urlKeys?: CrudListQueryUrlKeys;
+}
+
 export type CrudSuccessEvent =
   | { action: 'create'; result: unknown; values: CrudValues }
   | { action: 'update'; result: unknown; values: CrudValues }
@@ -181,6 +248,8 @@ export interface SchemaCrudListProps<TRecord extends CrudRecord = CrudRecord> {
 
   /** Business filters, sent with page / size. */
   params?: Record<string, any>;
+  /** User query values, rendered through query.slots. */
+  query?: CrudListQueryConfig<TRecord>;
   /** Controlled current page. Passing page or pageSize disables URL syncing. */
   page?: number;
   pageSize?: number;

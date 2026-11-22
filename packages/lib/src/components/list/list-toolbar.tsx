@@ -1,5 +1,6 @@
 import { Button, Space } from 'antd';
 import { ArrowLeftOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import type { ReactNode } from 'react';
 import type { ListActions } from '../../types';
 
 interface SchemaListToolbarProps {
@@ -8,15 +9,19 @@ interface SchemaListToolbarProps {
   onCreate?: () => void;
   onBack?: () => void;
   reload: () => void;
+  queryStart?: ReactNode;
+  queryEnd?: ReactNode;
 }
 
-/** Card extra actions: create, refresh and back. */
+/** Card extra actions: query slots, create, refresh and back. */
 export function SchemaListToolbar({
   actions,
   loading,
   onCreate,
   onBack,
   reload,
+  queryStart,
+  queryEnd,
 }: SchemaListToolbarProps) {
   const createAction = actions?.create === false ? null : (actions?.create ?? {});
   const refreshAction = actions?.refresh === false ? null : (actions?.refresh ?? {});
@@ -24,10 +29,11 @@ export function SchemaListToolbar({
   const showRefresh = Boolean(refreshAction);
   const showBack = Boolean(onBack);
 
-  if (!showCreate && !showRefresh && !showBack) return null;
+  if (!showCreate && !showRefresh && !showBack && !queryStart && !queryEnd) return null;
 
   return (
     <Space wrap>
+      {queryStart}
       {showCreate ? (
         <Button
           {...createAction?.props}
@@ -55,6 +61,7 @@ export function SchemaListToolbar({
           返回
         </Button>
       ) : null}
+      {queryEnd}
     </Space>
   );
 }
